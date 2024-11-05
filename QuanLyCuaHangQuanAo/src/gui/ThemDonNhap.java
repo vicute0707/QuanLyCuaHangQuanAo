@@ -51,7 +51,6 @@ public class ThemDonNhap extends JPanel {
     private JButton danhSachButton;
 
     public ThemDonNhap() {
-    	
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
         setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -310,24 +309,21 @@ public class ThemDonNhap extends JPanel {
         panel.add(tongTienLabel, BorderLayout.WEST);
         JPanel panelBt = new JPanel();
         panelBt.add(danhSachButton);
-        danhSachButton.addActionListener(new ActionListener() {
-        	  
-            @Override  
-            public void actionPerformed(ActionEvent e) {  
-                // Lấy parent panel  
-                Container parentPanel = getParent();  
-                
-                // Clear toàn bộ components hiện tại  
-                parentPanel.removeAll();  
-                
-                // Thêm panel QuanLyNhapHang  
-                QuanLyNhapHang quanLyPanel = new QuanLyNhapHang(); // đảm bảo gọi lớp đúng  
-                parentPanel.add(quanLyPanel);  
-                
-                // Refresh giao diện  
-                parentPanel.revalidate();  
-                parentPanel.repaint();  }
-		});
+        danhSachButton.addActionListener(e -> {
+            // Tìm đến panel chứa nội dung chính (thường là panel ở giữa của giao diện)
+            Container mainContent = ThemDonNhap.this.getParent();
+            
+            // Xóa nội dung hiện tại của panel chính
+            mainContent.removeAll();
+            
+            // Thêm panel QuanLyNhapHang mới vào panel chính
+            QuanLyNhapHang quanLyPanel = new QuanLyNhapHang();
+            mainContent.add(quanLyPanel);
+            
+            // Cập nhật và vẽ lại giao diện
+            mainContent.revalidate();
+            mainContent.repaint();
+        });
         panelBt.add(nhapHangButton);
         
         panel.add(panelBt, BorderLayout.EAST);
