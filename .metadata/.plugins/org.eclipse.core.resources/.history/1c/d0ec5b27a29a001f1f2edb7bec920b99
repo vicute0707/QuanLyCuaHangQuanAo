@@ -1,0 +1,31 @@
+package gui;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+public class Form_GiaoDienChinh extends JFrame{
+	public Form_GiaoDienChinh() {
+		// TODO Auto-generated constructor stub
+		setSize(new Dimension(1000,600));
+		setVisible(true);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		JPanel panelNorth = new JPanel();
+		panelNorth.setSize(new Dimension(1000,60));
+		panelNorth.setLayout(new BoxLayout(panelNorth, BoxLayout.Y_AXIS));
+		panel.add(panelNorth,BorderLayout.NORTH);
+		JPanel pnlTieuDe = new JPanel();
+		JPanel pnlJMenu = new JPanel();
+		panelNorth.add(pnlTieuDe);
+		panelNorth.add(pnlJMenu);
+		
+		JPanel panelCenter = new JPanel();
+		panel.add(panelCenter,BorderLayout.CENTER);
+		
+	}
+
+}

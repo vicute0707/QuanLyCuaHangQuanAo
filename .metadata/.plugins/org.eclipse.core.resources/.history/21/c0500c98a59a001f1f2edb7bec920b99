@@ -1,0 +1,79 @@
+package test;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
+
+import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+
+import java.awt.Component;
+import javax.swing.ImageIcon;
+
+public class GiaoDienChinh extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+	   private static final Color PRIMARY_COLOR = new Color(219, 39, 119); // pink-600  
+	    private static final Color HOVER_COLOR = new Color(190, 24, 93); // darker pink for hover
+	    private static final Color LINK_HOVER_COLOR = new Color(236, 72, 153); // lighter pink for link hover
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					GiaoDienChinh frame = new GiaoDienChinh();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public GiaoDienChinh() {
+		setSize(new Dimension(1000,600));
+		setVisible(true);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		JPanel panelNorth = new JPanel();
+		JPanel pnlTieuDe = new JPanel();
+		JPanel pnlJMenu = new JPanel();
+		panelNorth.add(pnlTieuDe);
+		panelNorth.add(pnlJMenu);
+		panelNorth.setSize(new Dimension(1000,60));
+		panelNorth.setLayout(new BoxLayout(panelNorth, BoxLayout.Y_AXIS));
+		pnlTieuDe.setLayout(new BorderLayout(0, 0));
+		JLabel lblLogo = new JLabel("   WOMEN FASHION");
+		lblLogo.setAlignmentX(Component.CENTER_ALIGNMENT);
+		lblLogo.setFont(new Font(FlatRobotoFont.FAMILY, Font.BOLD, 12));
+		lblLogo.setForeground(PRIMARY_COLOR);
+		pnlTieuDe.add(lblLogo, BorderLayout.WEST);
+		
+		JLabel lblUser = new JLabel("Hi, User             ");
+		lblUser.setIcon(new ImageIcon(GiaoDienChinh.class.getResource("/icon/circle-user.png")));
+		lblUser.setHorizontalAlignment(SwingConstants.RIGHT);
+
+		pnlTieuDe.add(lblUser, BorderLayout.EAST);
+		
+		JPanel panelCenter = new JPanel();
+		panel.add(panelNorth,BorderLayout.NORTH);
+		panel.add(panelCenter,BorderLayout.CENTER);
+		getContentPane().add(panel);
+	}
+
+}

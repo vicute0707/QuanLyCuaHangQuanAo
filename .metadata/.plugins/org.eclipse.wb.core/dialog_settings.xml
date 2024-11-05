@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.wb.internal.core.nls.ui.NlsDialog">
+		<item key="x" value="1920"/>
+		<item key="y" value="246"/>
+		<item key="width" value="1920"/>
+		<item key="height" value="540"/>
+	</section>
+	<section name="org.eclipse.wb.internal.core.model.property.order.ReorderDialog">
+		<item key="x" value="2620"/>
+		<item key="y" value="333"/>
+		<item key="width" value="520"/>
+		<item key="height" value="366"/>
+	</section>
+</section>

@@ -1,0 +1,264 @@
+package test;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.geom.RoundRectangle2D;
+
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
+
+import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+
+public class GiaoDienChinh extends JFrame {
+
+    private static final long serialVersionUID = 1L;
+    private JPanel contentPane;
+    private static final Color PRIMARY_COLOR = new Color(219, 39, 119); // pink-600
+    private static final Color HOVER_COLOR = new Color(190, 24, 93); // darker pink for hover
+    private static final Color LINK_HOVER_COLOR = new Color(236, 72, 153); // lighter pink for link hover
+    private JPanel panelCenter;
+    private JPanel homePanel;
+    private JButton currentButton;
+    private static final Font MENU_FONT = new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 13);
+    private static final Dimension BANNER_SIZE = new Dimension(1200, 350);
+
+    public static void main(String[] args) {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    GiaoDienChinh frame = new GiaoDienChinh();
+                    frame.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public GiaoDienChinh() {
+        setSize(new Dimension(1400, 700));
+        setLocationRelativeTo(null);
+        setVisible(true);
+        
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+
+        JPanel panelNorth = new JPanel();
+        JPanel pnlTieuDe = new JPanel();
+        pnlTieuDe.setBackground(new Color(255, 255, 255));
+        JPanel pnlJMenu = new JPanel();
+        pnlJMenu.setBackground(new Color(255, 255, 255));
+        panelNorth.add(pnlTieuDe);
+        panelNorth.add(pnlJMenu);
+        panelNorth.setPreferredSize(new Dimension(1400, 60));
+        panelNorth.setLayout(new BoxLayout(panelNorth, BoxLayout.Y_AXIS));
+        pnlTieuDe.setLayout(new BorderLayout(0, 0));
+
+        JLabel lblLogo = new JLabel("   WOMEN FASHION");
+        lblLogo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblLogo.setFont(new Font(FlatRobotoFont.FAMILY, Font.BOLD, 12));
+        lblLogo.setForeground(PRIMARY_COLOR);
+        pnlTieuDe.add(lblLogo, BorderLayout.WEST);
+
+        JLabel lblUser = new JLabel("Hi, User               ");
+        lblUser.setIcon(new ImageIcon(GiaoDienChinh.class.getResource("/icon/circle-user.png")));
+        lblUser.setFont(new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 13));
+        lblUser.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        // Menu Bar
+        JPanel menuBar = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
+        menuBar.setBackground(Color.white);
+        String[] menuItems = { "Trang chủ", "Sản phẩm", "Nhập hàng", "Xuất hàng", "Danh mục", "Nhà cung cấp", "Nhân viên", "Thống kê" };
+        for (String item : menuItems) {
+            JButton menuButton = createMenuButton(item);
+            menuBar.add(menuButton);
+        }
+
+        pnlTieuDe.add(lblUser, BorderLayout.EAST);
+        pnlJMenu.add(menuBar);
+
+        panelCenter = new JPanel();
+        panelCenter.setLayout(new BorderLayout());
+        panelCenter.setBackground(Color.WHITE);
+
+        homePanel = createHomePanel();
+
+        panel.add(panelNorth, BorderLayout.NORTH);
+        panel.add(panelCenter, BorderLayout.CENTER);
+        getContentPane().add(panel);
+        
+        showPanel(homePanel);
+    }
+
+    private JPanel createHomePanel() {
+        JPanel panel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                super.paintComponent(g);
+                java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+                g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(getBackground());
+                g2d.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 20, 20));
+            }
+        };
+        panel.setBackground(new Color(253, 242, 248));
+        
+        // Center panel for banner
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setOpaque(false);
+        
+        // Add Banner with adjusted size
+        JPanel bannerPanel = new JPanel(new BorderLayout());
+        bannerPanel.setOpaque(false);
+        bannerPanel.setPreferredSize(BANNER_SIZE);
+        
+        // Banner images with new size
+        JLabel[] bannerImages = new JLabel[3];
+        for (int i = 0; i < bannerImages.length; i++) {
+            bannerImages[i] = new JLabel("Banner " + (i + 1));
+            bannerImages[i].setHorizontalAlignment(SwingConstants.CENTER);
+            bannerImages[i].setVerticalAlignment(SwingConstants.CENTER);
+            bannerImages[i].setFont(new Font(FlatRobotoFont.FAMILY, Font.BOLD, 36));
+            bannerImages[i].setForeground(PRIMARY_COLOR);
+            bannerImages[i].setPreferredSize(BANNER_SIZE);
+        }
+        rotatingBanner(bannerPanel, bannerImages, 500);
+        
+        // Center the banner
+        centerPanel.add(bannerPanel, BorderLayout.CENTER);
+        centerPanel.setBorder(new EmptyBorder(20, 0, 0, 0)); // Add some top padding
+        
+        panel.add(centerPanel, BorderLayout.CENTER);
+        
+        return panel;
+    }
+
+    private JButton createMenuButton(String text) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                java.awt.Graphics2D g2d = (java.awt.Graphics2D) g.create();
+                g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(getBackground());
+                g2d.fill(new RoundRectangle2D.Double(0, 0, getWidth() - 1, getHeight() - 1, 20, 20));
+                g2d.dispose();
+                super.paintComponent(g);
+            }
+        };
+        button.setFont(MENU_FONT);
+        button.setForeground(new Color(75, 85, 99));
+        button.setBackground(Color.white);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setPreferredSize(new Dimension(140, 30));
+
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentButton != null) {
+                    currentButton.setForeground(new Color(75, 85, 99));
+                    currentButton.setBackground(Color.white);
+                }
+                
+                currentButton = button;
+                button.setForeground(PRIMARY_COLOR);
+                button.setBackground(new Color(253, 242, 248));
+
+                if (text.equals("Trang chủ")) {
+                    showPanel(homePanel);
+                } else {
+                    showPanel(new JPanel());
+                }
+            }
+        });
+
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (button != currentButton) {
+                    button.setForeground(PRIMARY_COLOR);
+                    button.setBackground(new Color(253, 242, 248));
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (button != currentButton) {
+                    button.setForeground(new Color(75, 85, 99));
+                    button.setBackground(Color.white);
+                }
+            }
+        });
+
+        // Add icons
+        switch (text) {
+            case "Trang chủ":
+                button.setIcon(new ImageIcon(GiaoDienChinh.class.getResource("/icon/house.png")));
+                break;
+            case "Sản phẩm":
+                button.setIcon(new ImageIcon(GiaoDienChinh.class.getResource("/icon/shirt.png")));
+                break;
+            case "Nhập hàng":
+                button.setIcon(new ImageIcon(GiaoDienChinh.class.getResource("/icon/folder-input.png")));
+                break;
+            case "Danh mục":
+                button.setIcon(new ImageIcon(GiaoDienChinh.class.getResource("/icon/chart-column-stacked.png")));
+                break;
+            case "Nhà cung cấp":
+                button.setIcon(new ImageIcon(GiaoDienChinh.class.getResource("/icon/container.png")));
+                break;
+            case "Nhân viên":
+                button.setIcon(new ImageIcon(GiaoDienChinh.class.getResource("/icon/users.png")));
+                break;
+            case "Thống kê":
+                button.setIcon(new ImageIcon(GiaoDienChinh.class.getResource("/icon/chart-no-axes-combined.png")));
+                break;
+            case "Xuất hàng":
+                button.setIcon(new ImageIcon(GiaoDienChinh.class.getResource("/icon/folder-output.png")));
+                break;
+        }
+
+        return button;
+    }
+
+    private void showPanel(JPanel panel) {
+        panelCenter.removeAll();
+        panelCenter.add(panel, BorderLayout.CENTER);
+        panelCenter.revalidate();
+        panelCenter.repaint();
+    }
+
+    private void rotatingBanner(JPanel bannerPanel, JLabel[] bannerImages, int delay) {
+        java.util.Timer timer = new java.util.Timer();
+        timer.schedule(new java.util.TimerTask() {
+            private int currentIndex = 0;
+
+            @Override
+            public void run() {
+                bannerPanel.removeAll();
+                bannerPanel.add(bannerImages[currentIndex], BorderLayout.CENTER);
+                bannerPanel.revalidate();
+                bannerPanel.repaint();
+                currentIndex = (currentIndex + 1) % bannerImages.length;
+            }
+        }, 0, delay);
+    }
+}

@@ -1,0 +1,230 @@
+package dialog;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.regex.Pattern;
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.table.DefaultTableModel;
+import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+import com.toedter.calendar.JDateChooser;
+
+public class ThemNhanVienDialog extends JDialog {
+    private static final Font HEADER_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 12);
+    private static final Font CONTENT_FONT = new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 12);
+    private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
+    private static final Color HOVER_COLOR = new Color(252, 231, 243);
+    private static final Color ERROR_COLOR = new Color(220, 38, 38);
+    
+    private DefaultTableModel tableModel;
+    private SimpleDateFormat dateFormat;
+    private int employeeCount = 0;
+    
+    // Email validation pattern
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+        "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"
+    );
+    
+    // Phone validation pattern (Vietnam)
+    private static final Pattern PHONE_PATTERN = Pattern.compile(
+        "^(\\+84|0)[35789][0-9]{8}$"
+    );
+    
+    public ThemNhanVienDialog(Frame owner, DefaultTableModel tableModel) {
+        super(owner, "Thêm nhân viên mới", true);
+        this.tableModel = tableModel;
+        this.dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        initComponents();
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    }
+    
+    // Previous initComponents() method remains the same...
+    [Previous initComponents() method content]
+
+    /**
+     * Validates all required fields and their formats
+     */
+    private boolean validateFields(JTextField nameField, JTextField phoneField, 
+                                 JTextField emailField, JDateChooser birthDateChooser) {
+        StringBuilder errorMessage = new StringBuilder("Vui lòng kiểm tra lại:\n");
+        boolean isValid = true;
+
+        // Validate name
+        if (nameField.getText().trim().isEmpty()) {
+            errorMessage.append("- Họ và tên không được để trống\n");
+            isValid = false;
+        } else if (!nameField.getText().trim().matches("^[\\p{L} .'-]+$")) {
+            errorMessage.append("- Họ và tên chỉ được chứa chữ cái và khoảng trắng\n");
+            isValid = false;
+        }
+
+        // Validate phone
+        if (phoneField.getText().trim().isEmpty()) {
+            errorMessage.append("- Số điện thoại không được để trống\n");
+            isValid = false;
+        } else if (!PHONE_PATTERN.matcher(phoneField.getText().trim()).matches()) {
+            errorMessage.append("- Số điện thoại không hợp lệ\n");
+            isValid = false;
+        }
+
+        // Validate email
+        if (emailField.getText().trim().isEmpty()) {
+            errorMessage.append("- Email không được để trống\n");
+            isValid = false;
+        } else if (!EMAIL_PATTERN.matcher(emailField.getText().trim()).matches()) {
+            errorMessage.append("- Email không hợp lệ\n");
+            isValid = false;
+        }
+
+        // Validate birth date
+        if (birthDateChooser.getDate() == null) {
+            errorMessage.append("- Ngày sinh không được để trống\n");
+            isValid = false;
+        } else {
+            Date birthDate = birthDateChooser.getDate();
+            Date currentDate = new Date();
+            if (birthDate.after(currentDate)) {
+                errorMessage.append("- Ngày sinh không thể sau ngày hiện tại\n");
+                isValid = false;
+            }
+        }
+
+        if (!isValid) {
+            JOptionPane.showMessageDialog(
+                this,
+                errorMessage.toString(),
+                "Lỗi nhập liệu",
+                JOptionPane.ERROR_MESSAGE
+            );
+        }
+
+        return isValid;
+    }
+
+    /**
+     * Generates the next employee ID
+     */
+    private String generateNextEmployeeId() {
+        employeeCount = tableModel.getRowCount();
+        return String.format("NV%04d", employeeCount + 1);
+    }
+
+    /**
+     * Creates a styled button
+     */
+    private JButton createButton(String text, boolean isPrimary) {
+        JButton button = new JButton(text);
+        button.setFont(CONTENT_FONT);
+        button.setFocusPainted(false);
+        
+        if (isPrimary) {
+            button.setBackground(PRIMARY_COLOR);
+            button.setForeground(Color.WHITE);
+            button.addMouseListener(new MouseAdapter() {
+                public void mouseEntered(MouseEvent e) {
+                    button.setBackground(PRIMARY_COLOR.darker());
+                }
+                public void mouseExited(MouseEvent e) {
+                    button.setBackground(PRIMARY_COLOR);
+                }
+            });
+        } else {
+            button.setBackground(Color.WHITE);
+            button.setForeground(Color.BLACK);
+            button.setBorder(new LineBorder(new Color(230, 230, 230), 1));
+            button.addMouseListener(new MouseAdapter() {
+                public void mouseEntered(MouseEvent e) {
+                    button.setBackground(HOVER_COLOR);
+                }
+                public void mouseExited(MouseEvent e) {
+                    button.setBackground(Color.WHITE);
+                }
+            });
+        }
+        
+        return button;
+    }
+
+    /**
+     * Saves the employee data to the table
+     */
+    private void saveEmployee(String name, String gender, Date birthDate,
+                            String address, String city, String province,
+                            String phone, String email, String department,
+                            String position) {
+        String id = generateNextEmployeeId();
+        String formattedBirthDate = dateFormat.format(birthDate);
+        
+        Object[] rowData = {
+            id,
+            name,
+            gender,
+            formattedBirthDate,
+            address,
+            city,
+            province,
+            phone,
+            email,
+            department,
+            position,
+            new Date() // Ngày tạo
+        };
+        
+        tableModel.addRow(rowData);
+        
+        // Show success message
+        JOptionPane.showMessageDialog(
+            this,
+            "Thêm nhân viên thành công!",
+            "Thành công",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    /**
+     * Creates a styled text field with placeholder
+     */
+    private JTextField createStyledTextField(String placeholder) {
+        JTextField textField = new JTextField() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (getText().length() == 0 && !hasFocus()) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setColor(Color.GRAY);
+                    g2.setFont(getFont().deriveFont(Font.ITALIC));
+                    g2.drawString(placeholder, getInsets().left, g.getFontMetrics()
+                        .getMaxAscent() + getInsets().top);
+                    g2.dispose();
+                }
+            }
+        };
+        
+        textField.setFont(CONTENT_FONT);
+        return textField;
+    }
+
+    /**
+     * Handles window closing event
+     */
+    private void addWindowListener() {
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                int choice = JOptionPane.showConfirmDialog(
+                    ThemNhanVienDialog.this,
+                    "Bạn có chắc muốn đóng cửa sổ này? Dữ liệu chưa lưu sẽ bị mất.",
+                    "Xác nhận",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+                );
+                
+                if (choice == JOptionPane.YES_OPTION) {
+                    dispose();
+                }
+            }
+        });
+    }
+}

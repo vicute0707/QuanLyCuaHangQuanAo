@@ -1,0 +1,102 @@
+package gui;  
+import javax.swing.*;  
+import javax.swing.border.EmptyBorder;  
+import java.awt.*;  
+import java.awt.geom.RoundRectangle2D;  
+
+public class Form_DangNhap extends JFrame {  
+    private JPanel contentPane;  
+    private static final Color PRIMARY_COLOR = new Color(219, 39, 119); // Màu chính  
+
+    public Form_DangNhap() {  
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  
+        setBounds(100, 100, 1000, 600);  
+        contentPane = new JPanel();  
+        contentPane.setBackground(new Color(253, 242, 248));  
+        contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));  
+        setContentPane(contentPane);  
+        contentPane.setLayout(null);  
+
+        // Thêm logo  
+        JLabel lbllogo = new JLabel(new ImageIcon(getClass().getResource("/img/logoHoa - Copy.png")));  
+        lbllogo.setBounds(0, 0, 290, 250);  
+        contentPane.add(lbllogo);  
+
+        // Tạo và thêm panel đăng nhập  
+        JPanel panelDangNhap = new JPanel();  
+        panelDangNhap.setBounds(296, 35, 400, 500);  
+        panelDangNhap.setBackground(Color.WHITE);  
+        panelDangNhap.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));  
+        
+        contentPane.add(panelDangNhap);  
+        panelDangNhap.setLayout(new BoxLayout(panelDangNhap, BoxLayout.Y_AXIS));  
+
+        // Tiêu đề  
+        JLabel titleLabel = new JLabel("Đăng nhập", SwingConstants.CENTER);  
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));  
+        titleLabel.setForeground(PRIMARY_COLOR);  
+        panelDangNhap.add(titleLabel);  
+
+        // Tên đăng nhập  
+        JTextField userField = createStyledTextField("Tên đăng nhập");  
+        panelDangNhap.add(userField);  
+
+        // Mật khẩu  
+        JPasswordField passField = createStyledPasswordField();  
+        panelDangNhap.add(passField);  
+
+        // Nút đăng nhập  
+        JButton loginButton = createStyledButton("Đăng nhập");  
+        panelDangNhap.add(loginButton);  
+        
+        // Thêm liên kết quên mật khẩu  
+        JLabel registerLink = new JLabel("Quên mật khẩu", SwingConstants.CENTER);  
+        registerLink.setForeground(PRIMARY_COLOR);  
+        registerLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));  
+        panelDangNhap.add(registerLink);  
+
+        // Các logo khác  
+        JLabel lbllogo_1_1 = new JLabel(new ImageIcon(getClass().getResource("/img/logoHoa - Copy - Copy.png")));  
+        lbllogo_1_1.setBounds(739, 214, 177, 163);  
+        contentPane.add(lbllogo_1_1);  
+    }  
+
+    private JTextField createStyledTextField(String labelText) {  
+        JTextField textField = new JTextField(15);  
+        textField.setFont(new Font("Arial", Font.PLAIN, 16));  
+        textField.setBorder(BorderFactory.createCompoundBorder(  
+                BorderFactory.createLineBorder(new Color(180, 180, 180)),  
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)));  
+        textField.setOpaque(false);  
+        JLabel label = new JLabel(labelText);  
+        label.setForeground(new Color(107, 114, 128));  
+        return textField;  
+    }  
+
+    private JPasswordField createStyledPasswordField() {  
+        JPasswordField passwordField = new JPasswordField(15);  
+        // Cấu hình cho mật khẩu  
+        return passwordField;  
+    }  
+
+    private JButton createStyledButton(String text) {  
+        JButton button = new JButton(text);  
+        button.setFont(new Font("Arial", Font.BOLD, 16));  
+        button.setForeground(Color.WHITE);  
+        button.setBackground(PRIMARY_COLOR);  
+        button.setFocusPainted(false);  
+        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));  
+        return button;  
+    }  
+
+    public static void main(String[] args) {  
+        EventQueue.invokeLater(() -> {  
+            try {  
+                Form_DangNhap frame = new Form_DangNhap();  
+                frame.setVisible(true);  
+            } catch (Exception e) {  
+                e.printStackTrace();  
+            }  
+        });  
+    }  
+}

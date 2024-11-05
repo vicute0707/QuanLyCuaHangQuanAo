@@ -1,0 +1,294 @@
+package dialog;
+
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import com.toedter.calendar.JDateChooser;
+
+public class ThemNhanVienDialog extends JDialog {
+    private DefaultTableModel tableModel;
+    private JTextField txtMaNV, txtHoTen, txtDiaChi, txtEmail, txtDienThoai;
+    private JComboBox<String> cboGioiTinh, cboPhongBan, cboChucVu;
+    private JDateChooser dateChooser;
+    private Color mainColor = new Color(14, 142, 233);
+    private Font mainFont = new Font("sansserif", Font.PLAIN, 14);
+
+    public ThemNhanVienDialog(Frame parent, DefaultTableModel tableModel) {
+        super(parent, "Thêm Nhân Viên Mới", true);
+        this.tableModel = tableModel;
+        initComponents();
+        setLocationRelativeTo(null);
+    }
+
+    private void initComponents() {
+        // Main panel setup
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        mainPanel.setBackground(Color.WHITE);
+
+        // Add components to main panel
+        mainPanel.add(createFormPanel());
+        mainPanel.add(Box.createVerticalStrut(10));
+        mainPanel.add(createButtonPanel());
+
+        // Dialog setup
+        setContentPane(mainPanel);
+        pack();
+        setSize(500, 600);
+        setResizable(false);
+    }
+
+    private JPanel createFormPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+        
+        int gridy = 0;
+
+        // Mã nhân viên
+        txtMaNV = createTextField();
+        txtMaNV.setText(generateEmployeeId());
+        txtMaNV.setEditable(false);
+        addFormField(panel, "Mã nhân viên:", txtMaNV, gbc, gridy++);
+
+        // Họ tên
+        txtHoTen = createTextField();
+        addFormField(panel, "Họ tên: *", txtHoTen, gbc, gridy++);
+
+        // Giới tính
+        cboGioiTinh = new JComboBox<>(new String[]{"Nam", "Nữ"});
+        styleComboBox(cboGioiTinh);
+        addFormField(panel, "Giới tính:", cboGioiTinh, gbc, gridy++);
+
+        // Ngày sinh
+        dateChooser = new JDateChooser();
+        dateChooser.setPreferredSize(new Dimension(200, 30));
+        dateChooser.setDateFormatString("dd/MM/yyyy");
+        addFormField(panel, "Ngày sinh: *", dateChooser, gbc, gridy++);
+
+        // Địa chỉ
+        txtDiaChi = createTextField();
+        addFormField(panel, "Địa chỉ:", txtDiaChi, gbc, gridy++);
+
+        // Email
+        txtEmail = createTextField();
+        addFormField(panel, "Email: *", txtEmail, gbc, gridy++);
+
+        // Điện thoại
+        txtDienThoai = createTextField();
+        addFormField(panel, "Điện thoại: *", txtDienThoai, gbc, gridy++);
+
+        // Phòng ban
+        cboPhongBan = new JComboBox<>(new String[]{
+            "Phòng Kỹ thuật", 
+            "Phòng Kinh doanh", 
+            "Phòng Nhân sự", 
+            "Phòng Kế toán"
+        });
+        styleComboBox(cboPhongBan);
+        addFormField(panel, "Phòng ban:", cboPhongBan, gbc, gridy++);
+
+        // Chức vụ
+        cboChucVu = new JComboBox<>(new String[]{
+            "Nhân viên", 
+            "Trưởng nhóm", 
+            "Trưởng phòng", 
+            "Giám đốc"
+        });
+        styleComboBox(cboChucVu);
+        addFormField(panel, "Chức vụ:", cboChucVu, gbc, gridy++);
+
+        return panel;
+    }
+
+    private JPanel createButtonPanel() {
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        buttonPanel.setBackground(Color.WHITE);
+
+        JButton btnSave = new JButton("Lưu");
+        JButton btnCancel = new JButton("Hủy");
+
+        // Style buttons
+        styleButton(btnSave, true);
+        styleButton(btnCancel, false);
+
+        // Add action listeners
+        btnSave.addActionListener(e -> saveEmployee());
+        btnCancel.addActionListener(e -> dispose());
+
+        buttonPanel.add(btnSave);
+        buttonPanel.add(btnCancel);
+
+        return buttonPanel;
+    }
+
+    private void addFormField(JPanel panel, String labelText, JComponent field, 
+                            GridBagConstraints gbc, int gridy) {
+        gbc.gridy = gridy;
+        
+        // Label
+        JLabel label = new JLabel(labelText);
+        label.setFont(mainFont);
+        gbc.gridx = 0;
+        gbc.weightx = 0.1;
+        panel.add(label, gbc);
+
+        // Field
+        gbc.gridx = 1;
+        gbc.weightx = 0.9;
+        panel.add(field, gbc);
+    }
+
+    private JTextField createTextField() {
+        JTextField field = new JTextField();
+        field.setPreferredSize(new Dimension(200, 30));
+        field.setFont(mainFont);
+        return field;
+    }
+
+    private void styleComboBox(JComboBox<String> comboBox) {
+        comboBox.setPreferredSize(new Dimension(200, 30));
+        comboBox.setFont(mainFont);
+        ((JLabel)comboBox.getRenderer()).setHorizontalAlignment(SwingConstants.LEFT);
+    }
+
+    private void styleButton(JButton button, boolean isPrimary) {
+        button.setPreferredSize(new Dimension(100, 35));
+        button.setFont(mainFont);
+        button.setFocusPainted(false);
+        
+        if (isPrimary) {
+            button.setBackground(mainColor);
+            button.setForeground(Color.WHITE);
+            button.setBorder(null);
+        } else {
+            button.setBackground(Color.WHITE);
+            button.setForeground(Color.BLACK);
+            button.setBorder(new LineBorder(Color.GRAY));
+        }
+
+        button.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) {
+                if (isPrimary) {
+                    button.setBackground(mainColor.darker());
+                } else {
+                    button.setBackground(Color.LIGHT_GRAY);
+                }
+            }
+
+            public void mouseExited(MouseEvent e) {
+                if (isPrimary) {
+                    button.setBackground(mainColor);
+                } else {
+                    button.setBackground(Color.WHITE);
+                }
+            }
+        });
+    }
+
+    private String generateEmployeeId() {
+        int maxId = 0;
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            String id = (String) tableModel.getValueAt(i, 0);
+            try {
+                int num = Integer.parseInt(id.substring(2));
+                maxId = Math.max(maxId, num);
+            } catch (Exception e) {
+                // Skip invalid IDs
+            }
+        }
+        return "NV" + String.format("%03d", maxId + 1);
+    }
+
+    private void saveEmployee() {
+        if (!validateInput()) {
+            return;
+        }
+
+        try {
+            Object[] rowData = {
+                txtMaNV.getText(),
+                txtHoTen.getText().trim(),
+                cboGioiTinh.getSelectedItem(),
+                new SimpleDateFormat("dd/MM/yyyy").format(dateChooser.getDate()),
+                txtDienThoai.getText().trim(),
+                txtEmail.getText().trim(),
+                txtDiaChi.getText().trim(),
+                cboPhongBan.getSelectedItem(),
+                cboChucVu.getSelectedItem()
+            };
+
+            tableModel.addRow(rowData);
+            JOptionPane.showMessageDialog(this, 
+                "Thêm nhân viên thành công!", 
+                "Thông báo", 
+                JOptionPane.INFORMATION_MESSAGE);
+            dispose();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                "Lỗi khi thêm nhân viên: " + e.getMessage(),
+                "Lỗi",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private boolean validateInput() {
+        // Validate họ tên
+        if (txtHoTen.getText().trim().isEmpty()) {
+            showError("Vui lòng nhập họ tên");
+            txtHoTen.requestFocus();
+            return false;
+        }
+
+        // Validate ngày sinh
+        if (dateChooser.getDate() == null) {
+            showError("Vui lòng chọn ngày sinh");
+            dateChooser.requestFocus();
+            return false;
+        }
+
+        // Validate email
+        String email = txtEmail.getText().trim();
+        if (email.isEmpty()) {
+            showError("Vui lòng nhập email");
+            txtEmail.requestFocus();
+            return false;
+        }
+        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            showError("Email không hợp lệ");
+            txtEmail.requestFocus();
+            return false;
+        }
+
+        // Validate số điện thoại
+        String phone = txtDienThoai.getText().trim();
+        if (phone.isEmpty()) {
+            showError("Vui lòng nhập số điện thoại");
+            txtDienThoai.requestFocus();
+            return false;
+        }
+        if (!phone.matches("\\d{10}")) {
+            showError("Số điện thoại phải có 10 chữ số");
+            txtDienThoai.requestFocus();
+            return false;
+        }
+
+        return true;
+    }
+
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(this,
+            message,
+            "Lỗi",
+            JOptionPane.ERROR_MESSAGE);
+    }
+}

@@ -1,0 +1,118 @@
+package test;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
+
+import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+
+import java.awt.Component;
+import java.awt.Cursor;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+
+public class GiaoDienChinh extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+	   private static final Color PRIMARY_COLOR = new Color(219, 39, 119); // pink-600  
+	    private static final Color HOVER_COLOR = new Color(190, 24, 93); // darker pink for hover
+	    private static final Color LINK_HOVER_COLOR = new Color(236, 72, 153); // lighter pink for link hover
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					GiaoDienChinh frame = new GiaoDienChinh();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public GiaoDienChinh() {
+		setSize(new Dimension(1000,600));
+		setVisible(true);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		JPanel panelNorth = new JPanel();
+		JPanel pnlTieuDe = new JPanel();
+		JPanel pnlJMenu = new JPanel();
+		panelNorth.add(pnlTieuDe);
+		panelNorth.add(pnlJMenu);
+		panelNorth.setSize(new Dimension(1000,60));
+		panelNorth.setLayout(new BoxLayout(panelNorth, BoxLayout.Y_AXIS));
+		pnlTieuDe.setLayout(new BorderLayout(0, 0));
+		JLabel lblLogo = new JLabel("   WOMEN FASHION");
+		lblLogo.setAlignmentX(Component.CENTER_ALIGNMENT);
+		lblLogo.setFont(new Font(FlatRobotoFont.FAMILY, Font.BOLD, 12));
+		lblLogo.setForeground(PRIMARY_COLOR);
+		pnlTieuDe.add(lblLogo, BorderLayout.WEST);
+		
+		JLabel lblUser = new JLabel("Hi, User               ");
+		lblUser.setIcon(new ImageIcon(GiaoDienChinh.class.getResource("/icon/circle-user.png")));
+		lblUser.setFont(new java.awt.Font("Segoe UI", 0, 13));
+		lblUser.setHorizontalAlignment(SwingConstants.RIGHT);
+	    // Menu Bar
+        JPanel menuBar = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
+        menuBar.setBackground(Color.white);
+        
+        String[] menuItems = {"Dashboard", "Sản phẩm", "Đơn hàng", "Khách hàng", "Báo cáo"};
+        for (String item : menuItems) {
+            JButton menuButton = createMenuButton(item);
+            menuBar.add(menuButton);
+        }
+        
+		pnlTieuDe.add(lblUser, BorderLayout.EAST);
+		pnlJMenu.add(menuBar);
+		JPanel panelCenter = new JPanel();
+		panel.add(panelNorth,BorderLayout.NORTH);
+		panel.add(panelCenter,BorderLayout.CENTER);
+		getContentPane().add(panel);
+	}
+
+	  private JButton createMenuButton(String text) {
+	        JButton button = new JButton(text);
+	        button.setForeground(new Color(75, 85, 99));
+	        button.setBackground(Color.white);
+	        button.setBorderPainted(false);
+	        button.setFocusPainted(false);
+	        button.setContentAreaFilled(false);
+	        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+	        
+	        button.addMouseListener(new MouseAdapter(){
+	            @Override
+	            public void mouseEntered(MouseEvent e) {
+	                button.setForeground(PRIMARY_COLOR);
+	            }
+	            
+	            @Override
+	            public void mouseExited(MouseEvent e) {
+	                button.setForeground(new Color(75, 85, 99));
+	            }
+	        });
+	        
+	        return button;
+	    }
+}

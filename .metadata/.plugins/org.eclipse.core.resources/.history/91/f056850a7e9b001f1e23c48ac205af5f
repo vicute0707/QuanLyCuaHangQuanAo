@@ -1,0 +1,406 @@
+package gui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
+
+import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+
+public class QuanLyNhapHang extends JPanel {
+    
+    private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
+    private static final Color CONTENT_COLOR = new Color(255, 192, 203);
+    private static final Color HOVER_COLOR = new Color(252, 231, 243);
+    private static final Color FILTER_PANEL_COLOR = new Color(255, 235, 245); // Màu hồng pastel
+    private static final Font HEADER_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 12);
+    private static final Font CONTENT_FONT = new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 11); // Giảm kích thước font
+    private static final Font FILTER_LABEL_FONT = new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 10); // Font cho label filter
+    
+    private JTable table;
+    private DefaultTableModel tableModel;
+    private JTextField searchField;
+    private JTextField supplierField;
+    private JTextField employeeField;
+    private JTextField fromDateField;
+    private JTextField toDateField;
+    private JTextField fromAmountField;
+    private JTextField toAmountField;
+    
+    public QuanLyNhapHang() {
+        initComponents();
+    }
+    
+    private void initComponents() {
+        setLayout(new BorderLayout(30, 20)); // Tăng khoảng cách giữa các thành phần lên 30px
+        setBackground(Color.WHITE);
+        setBorder(new EmptyBorder(30, 30, 30, 30));
+        
+        JPanel mainContent = new JPanel(new BorderLayout(30, 0)); // Panel chứa filter và table
+        mainContent.setBackground(Color.WHITE);
+        
+        // Add main components
+        add(createTopPanel(), BorderLayout.NORTH);
+        mainContent.add(createFilterPanel(), BorderLayout.WEST);
+        mainContent.add(createTablePanel(), BorderLayout.CENTER);
+        
+        add(mainContent, BorderLayout.CENTER);
+    }
+    
+    private JPanel createTopPanel() {
+        JPanel topPanel = new JPanel(new BorderLayout(20, 0));
+        topPanel.setBackground(Color.WHITE);
+        
+        // Left components with search
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
+        leftPanel.setBackground(Color.WHITE);
+        
+        searchField = new JTextField();
+        searchField.setPreferredSize(new Dimension(200, 32)); // Giảm kích thước
+        searchField.setFont(CONTENT_FONT);
+        
+        JButton searchButton = createIconButton("/icon/search.png");
+        
+        leftPanel.add(searchField);
+        leftPanel.add(searchButton);
+        
+        // Right components with action buttons
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0)); // Giảm khoảng cách giữa các nút
+        rightPanel.setBackground(Color.WHITE);
+        
+        JButton addButton = createButton("Thêm phiếu nhập", "/icon/circle-plus.png", true);
+        addButton.setBackground(PRIMARY_COLOR);
+        addButton.setForeground(Color.WHITE);
+        addButton.setPreferredSize(new Dimension(140, 32)); // Giảm kích thước
+        
+        JButton deleteButton = createButton("Xóa", "/icon/trash.png", true);
+        JButton aboutButton = createButton("About", "/icon/info.png", true);
+        JButton exportButton = createButton("Xuất Excel", "/icon/printer.png", true);
+        exportButton.setPreferredSize(new Dimension(140, 32)); // Giảm kích thước
+        
+        rightPanel.add(addButton);
+        rightPanel.add(deleteButton);
+        rightPanel.add(aboutButton);
+        rightPanel.add(exportButton);
+        
+        topPanel.add(leftPanel, BorderLayout.WEST);
+        topPanel.add(rightPanel, BorderLayout.EAST);
+        
+        return topPanel;
+    }
+    
+    private JPanel createFilterPanel() {
+        JPanel filterPanel = new JPanel();
+        filterPanel.setLayout(new BoxLayout(filterPanel, BoxLayout.Y_AXIS));
+        filterPanel.setBackground(FILTER_PANEL_COLOR);
+        filterPanel.setBorder(BorderFactory.createCompoundBorder(
+            new EmptyBorder(15, 15, 15, 15),
+            BorderFactory.createLineBorder(CONTENT_COLOR, 1, true) // Thêm bo góc
+        ));
+        filterPanel.setPreferredSize(new Dimension(280, 0)); // Tăng chiều rộng một chút
+
+        // Add title for filter panel với style mới
+        JLabel filterTitle = new JLabel("Lọc kết quả");
+        filterTitle.setFont(new Font(FlatRobotoFont.FAMILY, Font.BOLD, 14)); // Tăng size font
+        filterTitle.setForeground(PRIMARY_COLOR);
+        filterTitle.setAlignmentX(LEFT_ALIGNMENT);
+        filterPanel.add(filterTitle);
+        filterPanel.add(Box.createVerticalStrut(20)); // Tăng khoảng cách sau title
+
+        // Tạo combo box cho nhà cung cấp
+        filterPanel.add(createFilterComboField("Nhà cung cấp", 
+            new String[]{"Tất cả", "Xưởng may Đại Nam", "Xưởng may Hoàng Gia", "Công ty TNHH May Việt Tiến"}));
+        filterPanel.add(Box.createVerticalStrut(15));
+
+        // Tạo combo box cho nhân viên
+        filterPanel.add(createFilterComboField("Nhân viên tiếp nhận", 
+            new String[]{"Tất cả", "Nguyễn Thị Tường Vi", "Trần Văn Nam", "Lê Thị Hoa"}));
+        filterPanel.add(Box.createVerticalStrut(15));
+
+        // Tạo date chooser cho ngày
+        filterPanel.add(createDateChooserField("Ngày"));
+        filterPanel.add(Box.createVerticalStrut(25));
+
+        // Add apply and reset buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        buttonPanel.setBackground(FILTER_PANEL_COLOR);
+        buttonPanel.setAlignmentX(LEFT_ALIGNMENT);
+
+        JButton applyButton = new JButton("Áp dụng");
+        styleButton(applyButton, true);
+        
+        JButton resetButton = new JButton("Đặt lại");
+        styleButton(resetButton, false);
+
+        buttonPanel.add(applyButton);
+        buttonPanel.add(resetButton);
+        
+        filterPanel.add(buttonPanel);
+
+        return filterPanel;
+    }
+
+    private JPanel createFilterComboField(String label, String[] items) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(FILTER_PANEL_COLOR);
+        panel.setAlignmentX(LEFT_ALIGNMENT);
+        
+        JLabel titleLabel = new JLabel(label);
+        titleLabel.setFont(new Font(FlatRobotoFont.FAMILY, Font.MEDIUM, 12));
+        titleLabel.setForeground(new Color(71, 71, 71));
+        titleLabel.setAlignmentX(LEFT_ALIGNMENT);
+        
+        JComboBox<String> comboBox = new JComboBox<>(items);
+        comboBox.setFont(CONTENT_FONT);
+        comboBox.setPreferredSize(new Dimension(250, 32));
+        comboBox.setMaximumSize(new Dimension(250, 32));
+        comboBox.setBackground(Color.WHITE);
+        ((JTextField)comboBox.getEditor().getEditorComponent()).setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(219, 219, 219), 1),
+                BorderFactory.createEmptyBorder(0, 8, 0, 8)
+            )
+        );
+        
+        panel.add(titleLabel);
+        panel.add(Box.createVerticalStrut(5));
+        panel.add(comboBox);
+        
+        return panel;
+    }
+
+    private JPanel createDateChooserField(String label) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(FILTER_PANEL_COLOR);
+        panel.setAlignmentX(LEFT_ALIGNMENT);
+        
+        JLabel titleLabel = new JLabel(label);
+        titleLabel.setFont(new Font(FlatRobotoFont.FAMILY, Font.MEDIUM, 12));
+        titleLabel.setForeground(new Color(71, 71, 71));
+        titleLabel.setAlignmentX(LEFT_ALIGNMENT);
+        
+        JDateChooser dateChooser = new JDateChooser();
+        dateChooser.setPreferredSize(new Dimension(250, 32));
+        dateChooser.setMaximumSize(new Dimension(250, 32));
+        dateChooser.setDateFormatString("dd/MM/yyyy");
+        dateChooser.setFont(CONTENT_FONT);
+        
+        // Style cho text field trong date chooser
+        JTextField dateTextField = ((JTextField) dateChooser.getDateEditor().getUiComponent());
+        dateTextField.setBackground(Color.WHITE);
+        dateTextField.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(219, 219, 219), 1),
+                BorderFactory.createEmptyBorder(0, 8, 0, 8)
+            )
+        );
+        
+        panel.add(titleLabel);
+        panel.add(Box.createVerticalStrut(5));
+        panel.add(dateChooser);
+        
+        return panel;
+    }
+
+    private void styleButton(JButton button, boolean isPrimary) {
+        button.setFont(new Font(FlatRobotoFont.FAMILY, Font.MEDIUM, 12));
+        button.setPreferredSize(new Dimension(100, 32));
+        button.setFocusPainted(false);
+        
+        if (isPrimary) {
+            button.setBackground(PRIMARY_COLOR);
+            button.setForeground(Color.WHITE);
+            button.setBorder(new LineBorder(PRIMARY_COLOR));
+        } else {
+            button.setBackground(Color.WHITE);
+            button.setForeground(new Color(71, 71, 71));
+            button.setBorder(new LineBorder(new Color(219, 219, 219)));
+        }
+        
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (isPrimary) {
+                    button.setBackground(PRIMARY_COLOR.darker());
+                } else {
+                    button.setBackground(HOVER_COLOR);
+                }
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (isPrimary) {
+                    button.setBackground(PRIMARY_COLOR);
+                } else {
+                    button.setBackground(Color.WHITE);
+                }
+            }
+        });
+    }
+    
+    private JPanel createFilterField(String label, JTextField field) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(FILTER_PANEL_COLOR);
+        panel.setAlignmentX(LEFT_ALIGNMENT);
+        
+        JLabel titleLabel = new JLabel(label);
+        titleLabel.setFont(FILTER_LABEL_FONT);
+        titleLabel.setAlignmentX(LEFT_ALIGNMENT);
+        
+        field.setFont(CONTENT_FONT);
+        field.setPreferredSize(new Dimension(230, 28)); // Giảm kích thước
+        field.setMaximumSize(new Dimension(230, 28));
+        
+        panel.add(titleLabel);
+        panel.add(Box.createVerticalStrut(3));
+        panel.add(field);
+        
+        return panel;
+    }
+    
+    private JPanel createTablePanel() {
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBackground(Color.WHITE);
+        
+        // Create table model with columns
+        String[] columns = {
+            "Mã phiếu", "Nhà cung cấp", "Nhân viên nhập hàng", "Thời gian", "Tổng tiền"
+        };
+        
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        
+        table = new JTable(tableModel);
+        table.setFont(CONTENT_FONT);
+        table.setRowHeight(30); // Giảm chiều cao hàng
+        table.setGridColor(new Color(245, 245, 245));
+        table.setSelectionBackground(HOVER_COLOR);
+        table.setSelectionForeground(Color.BLACK);
+        
+        // Setup table header
+        JTableHeader header = table.getTableHeader();
+        header.setFont(HEADER_FONT);
+        header.setBackground(Color.WHITE);
+        header.setForeground(Color.BLACK);
+        header.setPreferredSize(new Dimension(header.getPreferredSize().width, 35));
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(230, 230, 230)));
+        
+        // Set column widths
+        TableColumn column1 = table.getColumnModel().getColumn(0); // Mã phiếu
+        column1.setPreferredWidth(80);
+        
+        TableColumn column2 = table.getColumnModel().getColumn(1); // Nhà cung cấp
+        column2.setPreferredWidth(150);
+        
+        TableColumn column3 = table.getColumnModel().getColumn(2); // Nhân viên
+        column3.setPreferredWidth(150);
+        
+        TableColumn column4 = table.getColumnModel().getColumn(3); // Thời gian
+        column4.setPreferredWidth(100);
+        
+        TableColumn column5 = table.getColumnModel().getColumn(4); // Tổng tiền
+        column5.setPreferredWidth(120);
+        
+        // Add sample data
+        addSampleData();
+        
+        // Create scroll pane
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(245, 245, 245)));
+        
+        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        
+        return tablePanel;
+    }
+    
+    private JButton createButton(String text, String iconPath, boolean isRounded) {
+        JButton button = new JButton(text);
+        button.setFont(CONTENT_FONT);
+        if (iconPath != null && !iconPath.isEmpty()) {
+            button.setIcon(new ImageIcon(getClass().getResource(iconPath)));
+        }
+        
+        if (isRounded) {
+            button.setBorder(new LineBorder(new Color(230, 230, 230), 1, true));
+        } else {
+            button.setBorder(BorderFactory.createEmptyBorder());
+        }
+        
+        button.setFocusPainted(false);
+        button.setBackground(Color.WHITE);
+        button.setPreferredSize(new Dimension(110, 32)); // Giảm kích thước
+        
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(HOVER_COLOR);
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (button.getForeground().equals(Color.WHITE)) {
+                    button.setBackground(PRIMARY_COLOR);
+                } else {
+                    button.setBackground(Color.WHITE);
+                }
+            }
+        });
+        
+        return button;
+    }
+    
+    private JButton createIconButton(String iconPath) {
+        JButton button = new JButton();
+        button.setIcon(new ImageIcon(getClass().getResource(iconPath)));
+        button.setBorder(BorderFactory.createEmptyBorder());
+        button.setFocusPainted(false);
+        button.setBackground(Color.WHITE);
+        button.setPreferredSize(new Dimension(32, 32)); // Giảm kích thước
+        
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(HOVER_COLOR);
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(Color.WHITE);
+            }
+        });
+        
+        return button;
+    }
+    
+    private void addSampleData() {
+        Object[][] data = {
+            {"P01", "Xưởng may Đại Nam", "Nguyễn Thị Tường Vi", "01/11/2023", "15,000,000 VND"},
+            {"P02", "Xưởng may Hoàng Gia", "Trần Văn Nam", "02/11/2023", "12,500,000 VND"},
+            {"P03", "Công ty TNHH May Việt Tiến", "Lê Thị Hoa", "03/11/2023", "18,750,000 VND"},
+            {"P04", "Xưởng may Phương Nam", "Nguyễn Văn An", "04/11/2023", "20,000,000 VND"},
+            {"P05", "Công ty CP May Nhà Bè", "Trần Thị Bình", "05/11/2023", "16,800,000 VND"}
+        };
+        
+        for (Object[] row : data) {
+            tableModel.addRow(row);
+        }
+    }
+}

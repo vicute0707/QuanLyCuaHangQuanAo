@@ -1,0 +1,310 @@
+package gui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.plaf.basic.BasicComboBoxUI;
+import javax.swing.plaf.basic.BasicComboPopup;
+import javax.swing.plaf.basic.BasicScrollBarUI;
+import javax.swing.plaf.basic.ComboPopup;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+
+import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+
+public class Form_SanPham extends JPanel {
+    
+    private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
+    private static final Color CONTENT_COLOR = new Color(255, 192, 203);
+    private static final Color HOVER_COLOR = new Color(252, 231, 243);
+    private static final Font HEADER_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 12);
+    private static final Font CONTENT_FONT = new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 12);
+    
+    private JTable table;
+    private DefaultTableModel tableModel;
+    private JTextField searchField;
+    
+    public Form_SanPham() {
+        initComponents();
+    }
+    
+    private void initComponents() {
+        setLayout(new BorderLayout(0, 20)); // Thêm gap dọc 20px giữa các component chính
+        setBackground(Color.WHITE);
+        setBorder(new EmptyBorder(20, 20, 20, 20)); // Tăng padding của toàn bộ form
+        
+        // Top Panel
+        add(createTopPanel(), BorderLayout.NORTH);
+        
+        // Table Panel
+        add(createTablePanel(), BorderLayout.CENTER);
+    }
+    
+    private JPanel createTopPanel() {
+        JPanel topPanel = new JPanel(new BorderLayout(20, 0)); // Thêm gap ngang 20px
+        topPanel.setBackground(Color.WHITE);
+        topPanel.setBorder(new EmptyBorder(0, 0, 20, 0)); // Tăng khoảng cách với table
+        
+        // Left components
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0)); // Tăng gap giữa các component
+        leftPanel.setBackground(Color.WHITE);
+        
+        // Custom ComboBox
+        JComboBox<String> filterCombo = new JComboBox<>(new String[]{"Tất cả"});
+        filterCombo.setPreferredSize(new Dimension(120, 35)); // Tăng kích thước
+        filterCombo.setFont(CONTENT_FONT);
+        filterCombo.setBorder(BorderFactory.createEmptyBorder());
+        filterCombo.setBackground(Color.WHITE);
+        
+        // Custom ComboBox UI giữ nguyên như cũ
+        filterCombo.setUI(new BasicComboBoxUI() {
+            @Override
+            protected void installDefaults() {
+                super.installDefaults();
+                LookAndFeel.installProperty(comboBox, "opaque", false);
+            }
+            
+            @Override
+            protected JButton createArrowButton() {
+                JButton button = new JButton();
+                button.setBorder(BorderFactory.createEmptyBorder());
+                button.setContentAreaFilled(false);
+                button.setIcon(new ImageIcon(getClass().getResource("/icon/arrow-down.png")));
+                return button;
+            }
+            
+            @Override
+            protected ComboPopup createPopup() {
+                return new BasicComboPopup(comboBox) {
+                    @Override
+                    protected void configurePopup() {
+                        super.configurePopup();
+                        setBorder(new LineBorder(Color.LIGHT_GRAY, 1));
+                    }
+                    
+                    @Override
+                    protected void configureList() {
+                        super.configureList();
+                        list.setSelectionBackground(HOVER_COLOR);
+                        list.setSelectionForeground(Color.BLACK);
+                    }
+                };
+            }
+        });
+        
+        searchField = new JTextField();
+        searchField.setPreferredSize(new Dimension(220, 35)); // Tăng kích thước
+        searchField.setFont(CONTENT_FONT);
+        
+        JButton searchButton = createRoundedButton("", "/icon/search.png", false);
+        
+        leftPanel.add(filterCombo);
+        leftPanel.add(searchField);
+        leftPanel.add(searchButton);
+        
+        // Right components
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0)); // Tăng gap giữa các button
+        rightPanel.setBackground(Color.WHITE);
+        
+        JButton addButton = createRoundedButton("Thêm sản phẩm", "/icon/circle-plus.png", true);
+        addButton.setBackground(PRIMARY_COLOR);
+        addButton.setForeground(Color.WHITE);
+        
+        JButton editButton = createRoundedButton("Edit", "/icon/pencil.png", true);
+        JButton deleteButton = createRoundedButton("Xóa", "/icon/trash.png", true);
+        JButton infoButton = createRoundedButton("About", "/icon/info.png", true);
+        JButton exportButton = createRoundedButton("Xuất Excel", "/icon/printer.png", true);
+        
+        rightPanel.add(addButton);
+        addButton.setPreferredSize(new Dimension(160, 38)); // Tăng chiều cao button
+        rightPanel.add(editButton);
+        rightPanel.add(deleteButton);
+        rightPanel.add(infoButton);
+        rightPanel.add(exportButton);
+        exportButton.setPreferredSize(new Dimension(160, 38)); // Tăng chiều cao button
+        
+        topPanel.add(leftPanel, BorderLayout.WEST);
+        topPanel.add(rightPanel, BorderLayout.EAST);
+        
+        return topPanel;
+    }
+    
+    private JPanel createTablePanel() {
+        JPanel tablePanel = new JPanel(new BorderLayout(0, 15)); // Thêm gap dọc
+        tablePanel.setBackground(Color.WHITE);
+        tablePanel.setBorder(new EmptyBorder(10, 0, 0, 0)); // Thêm padding top
+        
+        String[] columns = {
+            "Mã SP", "Tên sản phẩm", "Danh mục", "Số lượng tồn", 
+            "Giá nhập", "Giá bán", "Thương hiệu", "Tình trạng"
+        };
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        
+        table = new JTable(tableModel);
+        table.setFont(CONTENT_FONT);
+        table.setRowHeight(32); // Tăng chiều cao hàng
+        table.setGridColor(new Color(245, 245, 245));
+        table.setSelectionBackground(HOVER_COLOR);
+        table.setSelectionForeground(Color.BLACK);
+        table.setIntercellSpacing(new Dimension(10, 10)); // Thêm khoảng cách giữa các cell
+        
+        // Add hover effect
+        table.addMouseMotionListener(new MouseAdapter() {
+            public void mouseMoved(MouseEvent e) {
+                int row = table.rowAtPoint(e.getPoint());
+                if (row > -1) {
+                    if (table.getSelectedRow() != row) {
+                        table.clearSelection();
+                        table.setRowSelectionInterval(row, row);
+                    }
+                } else {
+                    table.clearSelection();
+                }
+            }
+        });
+        
+        // Setup table header
+        JTableHeader header = table.getTableHeader();
+        header.setFont(HEADER_FONT);
+        header.setBackground(Color.WHITE);
+        header.setForeground(Color.BLACK);
+        header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40)); // Tăng chiều cao header
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(230, 230, 230)));
+        
+        // Add sample data
+        addSampleData();
+        
+        // Create scroll pane with custom ScrollBarUI
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(245, 245, 245)));
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1)); // Thêm padding cho scroll pane
+        
+        // Customize scroll bars
+        CustomScrollBarUI scrollBarUI = new CustomScrollBarUI();
+        scrollPane.getVerticalScrollBar().setUI(scrollBarUI);
+        scrollPane.getHorizontalScrollBar().setUI(scrollBarUI);
+        
+        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        
+        return tablePanel;
+    }
+    
+    // Các phương thức còn lại giữ nguyên
+    private class CustomScrollBarUI extends BasicScrollBarUI {
+        @Override
+        protected void configureScrollBarColors() {
+            this.thumbColor = CONTENT_COLOR;
+            this.trackColor = Color.WHITE;
+        }
+        
+        @Override
+        protected JButton createDecreaseButton(int orientation) {
+            return createZeroButton();
+        }
+        
+        @Override
+        protected JButton createIncreaseButton(int orientation) {
+            return createZeroButton();
+        }
+        
+        private JButton createZeroButton() {
+            JButton button = new JButton();
+            button.setPreferredSize(new Dimension(0, 0));
+            button.setMinimumSize(new Dimension(0, 0));
+            button.setMaximumSize(new Dimension(0, 0));
+            return button;
+        }
+    }
+    
+    private JButton createRoundedButton(String text, String iconPath, boolean isRounded) {
+        JButton button = new JButton(text);
+        button.setFont(CONTENT_FONT);
+        if (iconPath != null && !iconPath.isEmpty()) {
+            button.setIcon(new ImageIcon(getClass().getResource(iconPath)));
+        }
+        
+        if (isRounded) {
+            button.setBorder(new LineBorder(new Color(230, 230, 230), 1, true));
+        } else {
+            button.setBorder(BorderFactory.createEmptyBorder());
+        }
+        
+        button.setFocusPainted(false);
+        button.setBackground(Color.WHITE);
+        button.setPreferredSize(new Dimension(text.isEmpty() ? 38 : 130, 38)); // Tăng kích thước button
+        
+        // Add hover effect
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(HOVER_COLOR);
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (button.getForeground().equals(Color.WHITE)) {
+                    button.setBackground(PRIMARY_COLOR);
+                } else {
+                    button.setBackground(Color.WHITE);
+                }
+            }
+        });
+        
+        return button;
+    }
+    
+    private void addSampleData() {
+        Object[][] data = {
+            {"SP001", "Váy ngắn kẻ caro", "Váy", 36, "200,000 vnd", "250,000 vnd", "VietNam", "Còn hàng"},
+            {"SP002", "Quần dài", "Quần", 3, "200,000 vnd", "250,000 vnd", "Shien", "Sắp hết"},
+            {"SP003", "Áo thun trơn", "Áo", 0, "120,000 vnd", "199,000 vnd", "T-Lab", "Hết hàng"}
+        };
+        
+        for (Object[] row : data) {
+            tableModel.addRow(row);
+        }
+        
+        // Set custom cell renderer for status column
+        table.getColumnModel().getColumn(7).setCellRenderer((table, value, isSelected, hasFocus, row, column) -> {
+            JLabel label = new JLabel(value.toString());
+            label.setOpaque(true);
+            label.setHorizontalAlignment(JLabel.CENTER);
+            label.setFont(CONTENT_FONT);
+            label.setBorder(new EmptyBorder(0, 5, 0, 5)); // Thêm padding cho cell
+            
+            switch (value.toString()) {
+                case "Còn hàng":
+                    label.setForeground(new Color(0, 128, 0));
+                    break;
+                case "Sắp hết":
+                    label.setForeground(new Color(255, 140, 0));
+                    break;
+                case "Hết hàng":
+                    label.setForeground(Color.RED);
+                    break;
+            }
+            
+            if (isSelected) {
+                label.setBackground(HOVER_COLOR);
+            } else {
+                label.setBackground(table.getBackground());
+            }
+            
+            return label;
+        });
+    }
+}

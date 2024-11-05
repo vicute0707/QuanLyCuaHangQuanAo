@@ -1,0 +1,622 @@
+package gui;
+
+import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.plaf.basic.BasicComboBoxUI;
+import java.awt.*;
+import java.awt.event.*;
+import java.text.NumberFormat;
+
+public class ThemDonNhap extends JPanel {
+    // Constants
+    private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
+    private static final Color CONTENT_COLOR = new Color(255, 242, 242);
+    private static final Color HOVER_COLOR = new Color(252, 231, 243);
+    private static final Font HEADER_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 12);
+    private static final Font CONTENT_FONT = new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 12);
+
+    // Components
+    private JTable danhSachSPTable;
+    private DefaultTableModel danhSachSPModel;
+    private JTable donNhapTable;
+    private DefaultTableModel donNhapModel;
+    
+    // Fields
+    private JTextField maDonNhapField;
+    private JComboBox<String> nhanVienCombo;
+    private JComboBox<String> nhaCungCapCombo;
+    private JTextField maSPField;
+    private JTextField tenSPField;
+    private JTextField giaNhapField;
+    private JTextField thuongHieuField;
+    private JTextField mauSacField;
+    private JTextField kichCoField;
+    private JTextField soLuongField;
+    private JLabel tongTienLabel;
+    private JButton addButton;
+
+    public ThemDonNhap() {
+        setLayout(new BorderLayout(10, 10));
+        setBackground(Color.WHITE);
+        setBorder(new EmptyBorder(20, 20, 20, 20));
+
+        initializeComponents();
+        setupLayout();
+        loadSampleData();
+    }
+
+    private void initializeComponents() {
+        // Initialize tables
+        String[] danhSachColumns = {"Mã SP", "Tên sản phẩm", "Số lượng tồn"};
+        danhSachSPModel = new DefaultTableModel(danhSachColumns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        danhSachSPTable = new JTable(danhSachSPModel);
+        setupTable(danhSachSPTable);
+
+        String[] donNhapColumns = {"Mã SP", "Tên sản phẩm", "Màu sắc", "Kích cỡ", "Thương hiệu", "Đơn giá", "Số lượng"};
+        donNhapModel = new DefaultTableModel(donNhapColumns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        donNhapTable = new JTable(donNhapModel);
+        setupTable(donNhapTable);
+
+        // Initialize fields
+        maDonNhapField = createStyledTextField(15);
+        
+        // Initialize ComboBoxes
+        String[] nhanVienData = {"Nguyễn Thị Tường Vi", "Trần Văn Nam", "Lê Thị Hoa"};
+        nhanVienCombo = new JComboBox<>(nhanVienData);
+        styleComboBox(nhanVienCombo);
+
+        String[] nhaCungCapData = {"Xưởng may Đại Nam", "Xưởng may Hoàng Gia", "Công ty TNHH May Việt Tiến"};
+        nhaCungCapCombo = new JComboBox<>(nhaCungCapData);
+        styleComboBox(nhaCungCapCombo);
+
+        // Initialize other fields
+        maSPField = createStyledTextField(10);
+        tenSPField = createStyledTextField(20);
+        giaNhapField = createStyledTextField(10);
+        thuongHieuField = createStyledTextField(15);
+        mauSacField = createStyledTextField(10);
+        kichCoField = createStyledTextField(10);
+        soLuongField = createStyledTextField(5);
+
+        tongTienLabel = new JLabel("TỔNG TIỀN: 0 đ");
+        tongTienLabel.setFont(HEADER_FONT);
+        tongTienLabel.setForeground(PRIMARY_COLOR);
+    }
+
+    private void styleComboBox(JComboBox<String> comboBox) {
+        comboBox.setFont(CONTENT_FONT);
+        comboBox.setBackground(Color.WHITE);
+        
+        // Custom UI
+        comboBox.setUI(new BasicComboBoxUI() {
+            @Override
+            protected JButton createArrowButton() {
+                JButton button = super.createArrowButton();
+                button.setBackground(Color.WHITE);
+                button.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+                return button;
+            }
+        });
+        
+        // Border and padding
+        comboBox.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(230, 230, 230), 1),
+            BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        ));
+
+        // Custom renderer for items
+        comboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                    int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                setFont(CONTENT_FONT);
+                setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
+                
+                if (isSelected) {
+                    setBackground(HOVER_COLOR);
+                    setForeground(Color.BLACK);
+                } else {
+                    setBackground(Color.WHITE);
+                    setForeground(Color.BLACK);
+                }
+                return this;
+            }
+        });
+
+        // Add hover effect
+        comboBox.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (comboBox.isEnabled()) {
+                    comboBox.setBorder(BorderFactory.createCompoundBorder(
+                        new LineBorder(PRIMARY_COLOR, 1),
+                        BorderFactory.createEmptyBorder(5, 8, 5, 8)
+                    ));
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (!comboBox.hasFocus()) {
+                    comboBox.setBorder(BorderFactory.createCompoundBorder(
+                        new LineBorder(new Color(230, 230, 230), 1),
+                        BorderFactory.createEmptyBorder(5, 8, 5, 8)
+                    ));
+                }
+            }
+        });
+    }
+
+    private void setupLayout() {
+        // Top panel - Thông tin đơn nhập
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        topPanel.setBackground(Color.WHITE);
+
+        // Panel thông tin cơ bản đơn nhập
+        JPanel infoPanel = new JPanel(new GridBagLayout());
+        infoPanel.setBackground(Color.WHITE);
+        
+        // Add thông tin đơn nhập
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 15);
+        
+        // Mã đơn nhập
+        addFormField(infoPanel, "Mã đơn nhập:", maDonNhapField, 0, 0);
+        
+        // Nhân viên combo
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        JLabel nhanVienLabel = new JLabel("Nhân viên phụ trách:");
+        nhanVienLabel.setFont(CONTENT_FONT);
+        infoPanel.add(nhanVienLabel, gbc);
+        
+        gbc.gridx = 3;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        infoPanel.add(nhanVienCombo, gbc);
+        
+        // Nhà cung cấp combo
+        gbc.gridx = 4;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        JLabel nhaCungCapLabel = new JLabel("Nhà cung cấp:");
+        nhaCungCapLabel.setFont(CONTENT_FONT);
+        infoPanel.add(nhaCungCapLabel, gbc);
+        
+        gbc.gridx = 5;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        infoPanel.add(nhaCungCapCombo, gbc);
+        
+        topPanel.add(infoPanel);
+        topPanel.add(Box.createVerticalStrut(20));
+
+        // Danh sách sản phẩm table
+        JScrollPane danhSachSPScroll = new JScrollPane(danhSachSPTable);
+        danhSachSPScroll.setBackground(CONTENT_COLOR);
+        danhSachSPTable.setBackground(CONTENT_COLOR);
+        JPanel danhSachPanel = new JPanel(new BorderLayout());
+        danhSachPanel.setBackground(CONTENT_COLOR);
+        danhSachPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        danhSachPanel.add(danhSachSPScroll);
+        
+        topPanel.add(danhSachPanel);
+        topPanel.add(Box.createVerticalStrut(20));
+
+        // Panel nhập thông tin sản phẩm
+        JPanel productInputPanel = new JPanel(new GridBagLayout());
+        productInputPanel.setBackground(Color.WHITE);
+        
+        // Add fields for product input
+        GridBagConstraints gbc2 = new GridBagConstraints();
+        gbc2.anchor = GridBagConstraints.WEST;
+        gbc2.insets = new Insets(5, 5, 5, 15);
+        
+        // Row 1
+        addFormField(productInputPanel, "Mã SP:", maSPField, 0, 0);
+        addFormField(productInputPanel, "Tên sản phẩm:", tenSPField, 0, 2);
+        addFormField(productInputPanel, "Thương hiệu:", thuongHieuField, 0, 4);
+        
+        // Row 2
+        addFormField(productInputPanel, "Giá nhập:", giaNhapField, 1, 0);
+        addFormField(productInputPanel, "Màu sắc:", mauSacField, 1, 2);
+        addFormField(productInputPanel, "Kích cỡ:", kichCoField, 1, 4);
+        addFormField(productInputPanel, "Số lượng:", soLuongField, 1, 6);
+        
+        // Add button
+        JButton addButton = new JButton("Thêm SP vào đơn");
+        styleButton(addButton);
+        
+        gbc2.gridx = 7;
+        gbc2.gridy = 1;
+        gbc2.anchor = GridBagConstraints.EAST;
+        productInputPanel.add(addButton, gbc2);
+        
+        topPanel.add(productInputPanel);
+        add(topPanel, BorderLayout.NORTH);
+
+        // Center - Đơn nhập table
+        JScrollPane donNhapScroll = new JScrollPane(donNhapTable);
+        add(donNhapScroll, BorderLayout.CENTER);
+
+        // Bottom panel - Total and buttons
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setBackground(Color.WHITE);
+        
+        bottomPanel.add(tongTienLabel, BorderLayout.WEST);
+        
+        JButton nhapHangButton = new JButton("NHẬP HÀNG");
+        styleButton(nhapHangButton);
+        bottomPanel.add(nhapHangButton, BorderLayout.EAST);
+        
+        add(bottomPanel, BorderLayout.SOUTH);
+    }
+
+    private void styleButton(JButton button) {
+        button.setFont(CONTENT_FONT);
+        button.setBackground(PRIMARY_COLOR);
+        button.setForeground(Color.WHITE);
+        button.setBorder(new LineBorder(PRIMARY_COLOR));
+        button.setFocusPainted(false);
+
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(PRIMARY_COLOR.darker());
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(PRIMARY_COLOR);
+            }
+        });
+    }
+    private void addEventListeners() {
+        // Click vào row trong bảng danh sách SP
+        danhSachSPTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int selectedRow = danhSachSPTable.getSelectedRow();
+                if (selectedRow >= 0) {
+                    String maSP = danhSachSPTable.getValueAt(selectedRow, 0).toString();
+                    String tenSP = danhSachSPTable.getValueAt(selectedRow, 1).toString();
+                    
+                    // Fill data vào form
+                    maSPField.setText(maSP);
+                    tenSPField.setText(tenSP);
+                    
+                    // Focus vào trường giá nhập
+                    giaNhapField.requestFocus();
+                }
+            }
+        });
+
+        // Click nút "Thêm SP vào đơn"
+        addButton.addActionListener(e -> {
+            if (validateProductInput()) {
+                addProductToOrder();
+                clearProductInputFields();
+            }
+        });
+
+        // Click nút "NHẬP HÀNG"
+        nhapHangButton.addActionListener(e -> {
+            if (validateOrder()) {
+                saveOrder();
+            }
+        });
+
+        // Click nút "Sửa" trong bảng đơn nhập
+        editButton.addActionListener(e -> {
+            int selectedRow = donNhapTable.getSelectedRow();
+            if (selectedRow >= 0) {
+                editProductInOrder(selectedRow);
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "Vui lòng chọn sản phẩm cần sửa!", 
+                    "Thông báo", 
+                    JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        // Click nút "Xóa" trong bảng đơn nhập
+        deleteButton.addActionListener(e -> {
+            int selectedRow = donNhapTable.getSelectedRow();
+            if (selectedRow >= 0) {
+                int option = JOptionPane.showConfirmDialog(this,
+                    "Bạn có chắc muốn xóa sản phẩm này khỏi đơn?",
+                    "Xác nhận xóa",
+                    JOptionPane.YES_NO_OPTION);
+                
+                if (option == JOptionPane.YES_OPTION) {
+                    donNhapModel.removeRow(selectedRow);
+                    updateTongTien();
+                }
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Vui lòng chọn sản phẩm cần xóa!",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+            }
+        });
+    }
+
+    private void addFormField(JPanel panel, String labelText, JComponent field, int row, int col) {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 15);
+        
+        gbc.gridx = col;
+        gbc.gridy = row;
+        JLabel label = new JLabel(labelText);
+        label.setFont(CONTENT_FONT);
+        panel.add(label, gbc);
+        
+        gbc.gridx = col + 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        panel.add(field, gbc);
+    }
+
+    private JTextField createStyledTextField(int columns) {
+        JTextField field = new JTextField(columns);
+        field.setFont(CONTENT_FONT);
+        field.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(230, 230, 230), 1),
+            BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        ));
+
+        field.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                    new LineBorder(PRIMARY_COLOR, 1),
+                    BorderFactory.createEmptyBorder(5, 8, 5, 8)
+                ));
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                    new LineBorder(new Color(230, 230, 230), 1),
+                    BorderFactory.createEmptyBorder(5, 8, 5, 8)
+                ));
+            }
+        });
+
+        return field;
+    }
+    private void setupTable(JTable table) {
+        table.setFont(CONTENT_FONT);
+        table.setRowHeight(35);
+        table.setGridColor(new Color(230, 230, 230));
+        table.getTableHeader().setFont(HEADER_FONT);
+        table.getTableHeader().setBackground(Color.WHITE);
+        table.getTableHeader().setPreferredSize(new Dimension(0, 40));
+        table.setSelectionBackground(HOVER_COLOR);
+        table.setSelectionForeground(Color.BLACK);
+        
+        // Set cell renderer for center alignment
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        
+        // Set cell renderer for right alignment (for price columns)
+        DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
+        rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
+        
+        // Apply renderers to specific columns
+        if (table == danhSachSPTable) {
+            table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer); // Mã SP
+            table.getColumnModel().getColumn(2).setCellRenderer(centerRenderer); // Số lượng tồn
+        } else if (table == donNhapTable) {
+            table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer); // Mã SP
+            table.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);  // Đơn giá
+            table.getColumnModel().getColumn(6).setCellRenderer(centerRenderer); // Số lượng
+        }
+    }
+    
+    private void loadSampleData() {
+        // Load sample data for danh sách SP table
+        Object[][] danhSachData = {
+            {"SP01", "Váy kẻ caro cúc", "30"},
+            {"SP02", "Áo sơ mi trắng", "25"},
+            {"SP03", "Quần jean nữ", "40"}
+        };
+        
+        for (Object[] row : danhSachData) {
+            danhSachSPModel.addRow(row);
+        }
+
+        // Load sample data for đơn nhập table
+        Object[][] donNhapData = {
+            {"SP001", "Váy ngắn kẻ caro", "Hồng nhạt", "L", "Brand A", "250,000", "3"}
+        };
+        
+        for (Object[] row : donNhapData) {
+            donNhapModel.addRow(row);
+        }
+        
+        updateTongTien();
+    }
+    
+    private void updateTongTien() {
+        double tongTien = 0;
+        for (int i = 0; i < donNhapModel.getRowCount(); i++) {
+            String donGiaStr = donNhapModel.getValueAt(i, 5).toString().replace(",", "");
+            int soLuong = Integer.parseInt(donNhapModel.getValueAt(i, 6).toString());
+            tongTien += Double.parseDouble(donGiaStr) * soLuong;
+        }
+        
+        NumberFormat formatter = NumberFormat.getNumberInstance();
+        tongTienLabel.setText("TỔNG TIỀN: " + formatter.format(tongTien) + " đ");
+    }
+    
+
+    private boolean validateProductInput() {
+        // Validate mã SP
+        if (maSPField.getText().trim().isEmpty()) {
+            showError("Vui lòng chọn sản phẩm từ danh sách!");
+            return false;
+        }
+
+        // Validate giá nhập
+        try {
+            double giaNhap = Double.parseDouble(giaNhapField.getText().trim().replace(",", ""));
+            if (giaNhap <= 0) {
+                showError("Giá nhập phải lớn hơn 0!");
+                return false;
+            }
+        } catch (NumberFormatException ex) {
+            showError("Giá nhập không hợp lệ!");
+            return false;
+        }
+
+        // Validate màu sắc
+        if (mauSacField.getText().trim().isEmpty()) {
+            showError("Vui lòng nhập màu sắc!");
+            return false;
+        }
+
+        // Validate kích cỡ
+        if (kichCoField.getText().trim().isEmpty()) {
+            showError("Vui lòng nhập kích cỡ!");
+            return false;
+        }
+
+        // Validate số lượng
+        try {
+            int soLuong = Integer.parseInt(soLuongField.getText().trim());
+            if (soLuong <= 0) {
+                showError("Số lượng phải lớn hơn 0!");
+                return false;
+            }
+        } catch (NumberFormatException ex) {
+            showError("Số lượng không hợp lệ!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void addProductToOrder() {
+        String maSP = maSPField.getText().trim();
+        String tenSP = tenSPField.getText().trim();
+        String mauSac = mauSacField.getText().trim();
+        String kichCo = kichCoField.getText().trim();
+        String thuongHieu = thuongHieuField.getText().trim();
+        
+        // Format giá nhập
+        double giaNhap = Double.parseDouble(giaNhapField.getText().trim().replace(",", ""));
+        NumberFormat formatter = NumberFormat.getNumberInstance();
+        String giaNhapFormatted = formatter.format(giaNhap);
+        
+        String soLuong = soLuongField.getText().trim();
+
+        // Thêm vào bảng
+        donNhapModel.addRow(new Object[]{
+            maSP, tenSP, mauSac, kichCo, thuongHieu, giaNhapFormatted, soLuong
+        });
+
+        updateTongTien();
+    }
+
+    private void clearProductInputFields() {
+        maSPField.setText("");
+        tenSPField.setText("");
+        giaNhapField.setText("");
+        mauSacField.setText("");
+        kichCoField.setText("");
+        thuongHieuField.setText("");
+        soLuongField.setText("");
+        
+        // Clear selection trong bảng danh sách SP
+        danhSachSPTable.clearSelection();
+    }
+
+    private boolean validateOrder() {
+        // Validate mã đơn nhập
+        if (maDonNhapField.getText().trim().isEmpty()) {
+            showError("Vui lòng nhập mã đơn nhập!");
+            return false;
+        }
+
+        // Validate nhân viên
+        if (nhanVienCombo.getSelectedIndex() == 0) {
+            showError("Vui lòng chọn nhân viên phụ trách!");
+            return false;
+        }
+
+        // Validate nhà cung cấp
+        if (nhaCungCapCombo.getSelectedIndex() == 0) {
+            showError("Vui lòng chọn nhà cung cấp!");
+            return false;
+        }
+
+        // Validate danh sách sản phẩm
+        if (donNhapModel.getRowCount() == 0) {
+            showError("Vui lòng thêm ít nhất một sản phẩm vào đơn!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void saveOrder() {
+        // TODO: Implement save order logic here
+        JOptionPane.showMessageDialog(this,
+            "Đã lưu đơn nhập hàng thành công!",
+            "Thông báo",
+            JOptionPane.INFORMATION_MESSAGE);
+        
+        // Clear form
+        clearForm();
+    }
+
+    private void clearForm() {
+        maDonNhapField.setText("");
+        nhanVienCombo.setSelectedIndex(0);
+        nhaCungCapCombo.setSelectedIndex(0);
+        clearProductInputFields();
+        donNhapModel.setRowCount(0);
+        updateTongTien();
+    }
+
+    private void editProductInOrder(int rowIndex) {
+        // Fill data to input fields
+        maSPField.setText(donNhapModel.getValueAt(rowIndex, 0).toString());
+        tenSPField.setText(donNhapModel.getValueAt(rowIndex, 1).toString());
+        mauSacField.setText(donNhapModel.getValueAt(rowIndex, 2).toString());
+        kichCoField.setText(donNhapModel.getValueAt(rowIndex, 3).toString());
+        thuongHieuField.setText(donNhapModel.getValueAt(rowIndex, 4).toString());
+        giaNhapField.setText(donNhapModel.getValueAt(rowIndex, 5).toString().replace(",", ""));
+        soLuongField.setText(donNhapModel.getValueAt(rowIndex, 6).toString());
+
+        // Remove row from table
+        donNhapModel.removeRow(rowIndex);
+        updateTongTien();
+    }
+
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(this,
+            message,
+            "Lỗi",
+            JOptionPane.ERROR_MESSAGE);
+    }
+}

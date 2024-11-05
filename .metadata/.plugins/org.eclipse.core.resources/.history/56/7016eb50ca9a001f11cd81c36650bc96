@@ -1,0 +1,280 @@
+package gui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicScrollBarUI;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import java.awt.BasicStroke;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.RoundRectangle2D;
+import javax.swing.border.AbstractBorder;
+
+public class Form_SanPham extends JPanel {
+    
+    // Updated colors to pastel tones
+    private static final Color PRIMARY_COLOR = new Color(255, 182, 193); // Pastel pink
+    private static final Color EDIT_COLOR = new Color(173, 216, 230);    // Pastel blue
+    private static final Color DELETE_COLOR = new Color(255, 182, 193);  // Pastel red
+    private static final Color INFO_COLOR = new Color(221, 160, 221);    // Pastel purple
+    private static final Color EXPORT_COLOR = new Color(144, 238, 144);  // Pastel green
+    
+    // Updated fonts to Segoe UI with smaller sizes
+    private static final Font HEADER_FONT = new Font("Segoe UI", Font.BOLD, 12);
+    private static final Font CONTENT_FONT = new Font("Segoe UI", Font.PLAIN, 11);
+    private static final Font BUTTON_FONT = new Font("Segoe UI", Font.PLAIN, 12);
+    
+    private JTable table;
+    private DefaultTableModel tableModel;
+    private JTextField searchField;
+    
+    // Rest of the border and button classes remain the same
+    class RoundedBorder extends AbstractBorder {
+        private final int radius;
+        private final Color color;
+        
+        RoundedBorder(int radius, Color color) {
+            this.radius = radius;
+            this.color = color;
+        }
+        
+        @Override
+        public void paintBorder(java.awt.Component c, Graphics g, int x, int y, int width, int height) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(color);
+            g2.setStroke(new BasicStroke(1));
+            g2.draw(new RoundRectangle2D.Double(x, y, width - 1, height - 1, radius, radius));
+            g2.dispose();
+        }
+    }
+    
+    class RoundedButton extends JButton {
+        public RoundedButton(String text) {
+            super(text);
+            setContentAreaFilled(false);
+            setFocusPainted(false);
+            setBorderPainted(false);
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            if (getModel().isPressed()) {
+                g2.setColor(getBackground().darker());
+            } else if (getModel().isRollover()) {
+                g2.setColor(getBackground().brighter());
+            } else {
+                g2.setColor(getBackground());
+            }
+            
+            g2.fill(new RoundRectangle2D.Double(0, 0, getWidth() - 1, getHeight() - 1, 15, 15));
+            g2.dispose();
+            
+            super.paintComponent(g);
+        }
+    }
+    
+    class RoundedComboBox extends JComboBox<String> {
+        public RoundedComboBox(String[] items) {
+            super(items);
+            setBackground(Color.WHITE);
+            setBorder(new RoundedBorder(10, new Color(200, 200, 200)));
+            setFont(CONTENT_FONT);
+            setRenderer(new DefaultListCellRenderer() {
+                @Override
+                public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                        boolean isSelected, boolean cellHasFocus) {
+                    super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                    setFont(CONTENT_FONT);
+                    setBorder(new EmptyBorder(5, 10, 5, 10));
+                    return this;
+                }
+            });
+        }
+    }
+    
+    public Form_SanPham() {
+        initComponents();
+    }
+    
+    private void initComponents() {
+        setLayout(new BorderLayout());
+        setBackground(Color.WHITE);
+        setBorder(new EmptyBorder(10, 10, 10, 10));
+        
+        add(createTopPanel(), BorderLayout.NORTH);
+        add(createTablePanel(), BorderLayout.CENTER);
+    }
+    
+    private JPanel createTopPanel() {
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(Color.WHITE);
+        topPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+        
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        leftPanel.setBackground(Color.WHITE);
+        
+        RoundedComboBox filterCombo = new RoundedComboBox(new String[]{"Tất cả"});
+        filterCombo.setPreferredSize(new Dimension(120, 35));
+        
+        searchField = new JTextField();
+        searchField.setPreferredSize(new Dimension(200, 35));
+        searchField.setFont(CONTENT_FONT);
+        searchField.setBorder(new RoundedBorder(10, new Color(200, 200, 200)));
+        
+        JButton searchButton = createButton("", "/icon/search.png");
+        
+        leftPanel.add(filterCombo);
+        leftPanel.add(searchField);
+        leftPanel.add(searchButton);
+        
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        rightPanel.setBackground(Color.WHITE);
+        
+        // Updated button colors to pastel
+        RoundedButton addButton = new RoundedButton("Thêm sản phẩm");
+        styleButton(addButton, "/icon/circle-plus.png", PRIMARY_COLOR, Color.WHITE);
+        addButton.setPreferredSize(new Dimension(160, 40));
+        
+        RoundedButton editButton = new RoundedButton("Edit");
+        styleButton(editButton, "/icon/pencil.png", EDIT_COLOR, Color.WHITE);
+        
+        RoundedButton deleteButton = new RoundedButton("Xóa");
+        styleButton(deleteButton, "/icon/trash.png", DELETE_COLOR, Color.WHITE);
+        
+        RoundedButton infoButton = new RoundedButton("About");
+        styleButton(infoButton, "/icon/info.png", INFO_COLOR, Color.WHITE);
+        
+        RoundedButton exportButton = new RoundedButton("Xuất Excel");
+        styleButton(exportButton, "/icon/printer.png", EXPORT_COLOR, Color.WHITE);
+        exportButton.setPreferredSize(new Dimension(140, 35));
+        
+        rightPanel.add(addButton);
+        rightPanel.add(editButton);
+        rightPanel.add(deleteButton);
+        rightPanel.add(infoButton);
+        rightPanel.add(exportButton);
+        
+        topPanel.add(leftPanel, BorderLayout.WEST);
+        topPanel.add(rightPanel, BorderLayout.EAST);
+        
+        return topPanel;
+    }
+    
+    private JPanel createTablePanel() {
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBackground(Color.WHITE);
+        
+        String[] columns = new String[]{
+            "Mã SP", "Tên sản phẩm", "Danh mục", "Số lượng tồn", 
+            "Giá nhập", "Giá bán", "Thương hiệu", "Tình trạng"
+        };
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        
+        table = new JTable(tableModel);
+        table.setFont(CONTENT_FONT);
+        table.setRowHeight(30); // Slightly reduced row height
+        table.setGridColor(new Color(230, 230, 230));
+        table.setShowVerticalLines(true);
+        table.setShowHorizontalLines(true);
+        
+        // Updated table header with new font
+        JTableHeader header = table.getTableHeader();
+        header.setFont(HEADER_FONT);
+        header.setBackground(new Color(245, 245, 245));
+        header.setForeground(Color.BLACK);
+        header.setPreferredSize(new Dimension(header.getPreferredSize().width, 35)); // Slightly reduced header height
+        
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230)));
+        
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        
+        scrollPane.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
+        	@Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = new Color(220, 220, 220);
+                this.trackColor = Color.WHITE;
+        }});
+        
+        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        addSampleData();
+        
+        return tablePanel;
+    }
+    
+    private void styleButton(RoundedButton button, String iconPath, Color bgColor, Color fgColor) {
+        button.setFont(BUTTON_FONT);
+        if (iconPath != null && !iconPath.isEmpty()) {
+            button.setIcon(new ImageIcon(getClass().getResource(iconPath)));
+        }
+        button.setBackground(bgColor);
+        button.setForeground(Color.DARK_GRAY); // Changed text color to dark gray for better contrast
+        button.setPreferredSize(new Dimension(button.getText().isEmpty() ? 40 : 120, 35));
+    }
+    
+    private JButton createButton(String text, String iconPath) {
+        RoundedButton button = new RoundedButton(text);
+        styleButton(button, iconPath, Color.WHITE, Color.BLACK);
+        return button;
+    }
+    
+    private void addSampleData() {
+        Object[][] data = {
+            {"SP001", "Váy ngắn kẻ caro", "Váy", 36, "200,000 vnd", "250,000 vnd", "VietNam", "Còn hàng"},
+            {"SP002", "Quần dài", "Quần", 3, "200,000 vnd", "250,000 vnd", "Shien", "Sắp hết"},
+            {"SP003", "Áo thun trơn", "Áo", 0, "120,000 vnd", "199,000 vnd", "T-Lab", "Hết hàng"}
+        };
+        
+        for (Object[] row : data) {
+            tableModel.addRow(row);
+        }
+        
+        // Updated status column renderer with new fonts and colors
+        table.getColumnModel().getColumn(7).setCellRenderer((table, value, isSelected, hasFocus, row, column) -> {
+            JLabel label = new JLabel(value.toString());
+            label.setOpaque(true);
+            label.setHorizontalAlignment(JLabel.CENTER);
+            label.setFont(CONTENT_FONT);
+            
+            switch (value.toString()) {
+                case "Còn hàng":
+                    label.setForeground(new Color(144, 238, 144)); // Pastel green
+                    break;
+                case "Sắp hết":
+                    label.setForeground(new Color(255, 218, 185)); // Pastel orange
+                    break;
+                case "Hết hàng":
+                    label.setForeground(new Color(255, 182, 193)); // Pastel red
+                    break;
+            }
+            
+            if (isSelected) {
+                label.setBackground(table.getSelectionBackground());
+            } else {
+                label.setBackground(table.getBackground());
+            }
+            
+            return label;
+        });
+    }
+}
