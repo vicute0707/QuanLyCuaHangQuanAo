@@ -28,6 +28,7 @@ public class Form_GiaoDienChinh extends JFrame {
     private Form_NhanVien nvPanel;
     private QuanLyNhapHang nhPanel;
     private QuanLyDonBan dhPanel;
+
     private static final Font MENU_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 13);
 
     public static void main(String[] args) {
@@ -68,6 +69,7 @@ public class Form_GiaoDienChinh extends JFrame {
         nvPanel = new Form_NhanVien();
         nhPanel = new QuanLyNhapHang();
         dhPanel = new QuanLyDonBan();
+        
         mainPanel.add(panelCenter, BorderLayout.CENTER);
         setContentPane(mainPanel);
         setVisible(true);
@@ -152,6 +154,7 @@ public class Form_GiaoDienChinh extends JFrame {
             else if(text.equals("Xuất hàng")) {
             	showPanel(dhPanel);
             }
+            
            
         });
 
