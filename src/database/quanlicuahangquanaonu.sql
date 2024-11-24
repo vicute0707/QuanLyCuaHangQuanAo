@@ -2,21 +2,18 @@ DROP DATABASE IF EXISTS store_management;
 CREATE DATABASE store_management DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 USE store_management;
 
--- Bảng Permission
 CREATE TABLE Permission (
     permissionID VARCHAR(36) PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     description TEXT
 );
 
--- Bảng UserRole
 CREATE TABLE UserRole (
     roleID VARCHAR(36) PRIMARY KEY,
     roleName VARCHAR(50) NOT NULL,
     permissions JSON
 );
 
--- Bảng User
 CREATE TABLE User (
     userID VARCHAR(36) PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -26,43 +23,40 @@ CREATE TABLE User (
     birthDate DATE,
     phone VARCHAR(15),
     email VARCHAR(100),
-    roleID VARCHAR(36),
+    role VARCHAR(36),
     status VARCHAR(20) DEFAULT 'active',
-    FOREIGN KEY(roleID) REFERENCES UserRole(roleID)
+    FOREIGN KEY(role) REFERENCES UserRole(roleID)
 );
 
--- Bảng Category
 CREATE TABLE Category (
     categoryID VARCHAR(36) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT
 );
 
--- Bảng Product
 CREATE TABLE Product (
     productID VARCHAR(36) PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
-    categoryID VARCHAR(36),
+    category VARCHAR(36),
     stockQuantity INT DEFAULT 0,
     importPrice DECIMAL(10, 2),
     sellPrice DECIMAL(10, 2),
     brand VARCHAR(100),
     imagePath VARCHAR(255),
-    FOREIGN KEY(categoryID) REFERENCES Category(categoryID)
+  
+    FOREIGN KEY(category) REFERENCES Category(categoryID)
 );
 
--- Bảng ProductVariant
 CREATE TABLE ProductVariant (
     variantID VARCHAR(36) PRIMARY KEY,
     productID VARCHAR(36),
     size VARCHAR(10),
     color VARCHAR(50),
     quantity INT DEFAULT 0,
-    material VARCHAR(255),
+    material NVARCHAR(255),
     FOREIGN KEY(productID) REFERENCES Product(productID)
 );
 
--- Bảng Supplier
 CREATE TABLE Supplier (
     supplierID VARCHAR(36) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -71,19 +65,17 @@ CREATE TABLE Supplier (
     phone VARCHAR(15)
 );
 
--- Bảng Import
 CREATE TABLE Import (
     importID VARCHAR(36) PRIMARY KEY,
     importDate DATETIME NOT NULL,
-    supplierID VARCHAR(36),
-    staffID VARCHAR(36),
+    supplier VARCHAR(36),
+    staff VARCHAR(36),
     totalAmount DECIMAL(10, 2) DEFAULT 0,
     details JSON,
-    FOREIGN KEY(supplierID) REFERENCES Supplier(supplierID),
-    FOREIGN KEY(staffID) REFERENCES User(userID)
+    FOREIGN KEY(supplier) REFERENCES Supplier(supplierID),
+    FOREIGN KEY(staff) REFERENCES User(userID)
 );
 
--- Bảng ImportDetail
 CREATE TABLE ImportDetail (
     importID VARCHAR(36),
     variantID VARCHAR(36),
@@ -94,18 +86,16 @@ CREATE TABLE ImportDetail (
     FOREIGN KEY(variantID) REFERENCES ProductVariant(variantID)
 );
 
--- Bảng Orders (tránh từ khóa "Order")
 CREATE TABLE Orders (
     orderID VARCHAR(36) PRIMARY KEY,
     orderDate DATETIME NOT NULL,
-    staffID VARCHAR(36),
+    staff VARCHAR(36),
     totalAmount DECIMAL(10, 2) DEFAULT 0,
     paymentMethod VARCHAR(20),
     details JSON,
-    FOREIGN KEY(staffID) REFERENCES User(userID)
+    FOREIGN KEY(staff) REFERENCES User(userID)
 );
 
--- Bảng OrderDetail
 CREATE TABLE OrderDetail (
     orderID VARCHAR(36),
     variantID VARCHAR(36),
@@ -116,23 +106,12 @@ CREATE TABLE OrderDetail (
     FOREIGN KEY(variantID) REFERENCES ProductVariant(variantID)
 );
 
-
 -- Thêm dữ liệu mẫu
--- Thêm dữ liệu mẫu vào bảng Permission
 INSERT INTO Permission VALUES
 ('PERM001', 'Quản lý người dùng', 'Quyền quản lý tài khoản người dùng'),
 ('PERM002', 'Quản lý sản phẩm', 'Quyền quản lý danh mục và sản phẩm'),
-('PERM003', 'Quản lý đơn hàng', 'Quyền quản lý đơn hàng và bán hàng'),
-('PERM004', 'Quản lý kho', 'Quyền quản lý kho và tồn kho'),
-('PERM005', 'Quản lý nhà cung cấp', 'Quyền quản lý thông tin nhà cung cấp'),
-('PERM006', 'Quản lý báo cáo', 'Quyền xem và tạo báo cáo kinh doanh'),
-('PERM007', 'Quản lý thanh toán', 'Quyền quản lý thanh toán và giao dịch tài chính'),
-('PERM008', 'Quản lý khách hàng', 'Quyền quản lý thông tin khách hàng'),
-('PERM009', 'Quản lý phân quyền', 'Quyền phân quyền cho người dùng khác'),
-('PERM010', 'Quản lý khuyến mãi', 'Quyền quản lý các chương trình khuyến mãi');
+('PERM003', 'Quản lý đơn hàng', 'Quyền quản lý đơn hàng và bán hàng');
 
--- Thêm dữ liệu mẫu vào bảng UserRole
--- Chỉnh sửa dữ liệu mẫu vào bảng UserRole
 INSERT INTO UserRole VALUES
 ('ROLE001', 'Admin', '["PERM001","PERM002","PERM003"]'),
 ('ROLE002', 'Nhân viên kho', '["PERM002"]'),
@@ -145,65 +124,30 @@ INSERT INTO User VALUES
 'Nhân viên kho 1', 'Nam', '1995-02-02', '0123456788', 'kho1@gmail.com', 'ROLE002', 'active'),
 ('USER003', 'banhang1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 
 'Nhân viên bán hàng 1', 'Nữ', '1998-03-03', '0123456787', 'banhang1@gmail.com', 'ROLE003', 'active');
--- Thêm dữ liệu mẫu vào bảng Category
+
 INSERT INTO Category VALUES
 ('CAT001', 'Áo', 'Các loại áo'),
 ('CAT002', 'Quần', 'Các loại quần'),
-('CAT003', 'Váy', 'Các loại váy'),
-('CAT004', 'Giày', 'Các loại giày'),
-('CAT005', 'Phụ kiện', 'Các loại phụ kiện thời trang'),
-('CAT006', 'Đồ thể thao', 'Các loại đồ thể thao'),
-('CAT007', 'Balo', 'Các loại balo'),
-('CAT008', 'Đồ ngủ', 'Các loại đồ ngủ'),
-('CAT009', 'Sản phẩm chăm sóc da', 'Các sản phẩm chăm sóc da'),
-('CAT010', 'Thắt lưng', 'Các loại thắt lưng');
+('CAT003', 'Váy', 'Các loại váy');
 
--- Thêm dữ liệu mẫu vào bảng Product
 INSERT INTO Product VALUES
 ('PRD001', 'Áo thun nam', 'CAT001', 100, 80000, 150000, 'Nike', '/images/products/ao-thun-nam.jpg'),
 ('PRD002', 'Quần jean nữ', 'CAT002', 50, 150000, 300000, 'Levis', '/images/products/quan-jean-nu.jpg'),
-('PRD003', 'Váy công sở', 'CAT003', 30, 200000, 400000, 'Zara', '/images/products/vay-cong-so.jpg'),
-('PRD004', 'Giày thể thao nam', 'CAT004', 200, 500000, 800000, 'Nike', '/images/products/vay-cong-so.jpg'),
-('PRD005', 'Giày công sở nữ', 'CAT004', 150, 700000, 1200000, 'Adidas', '/images/products/vay-cong-so.jpg'),
-('PRD006', 'Balo thời trang nam', 'CAT007', 80, 300000, 600000, 'Samsonite', '/images/products/vay-cong-so.jpg'),
-('PRD007', 'Balo học sinh', 'CAT007', 120, 200000, 400000, 'Targus', '/images/products/vay-cong-so.jpg'),
-('PRD008', 'Đồ thể thao nam', 'CAT006', 100, 350000, 700000, 'Under Armour', '/images/products/vay-cong-so.jpg'),
-('PRD009', 'Đồ thể thao nữ', 'CAT006', 90, 300000, 650000, 'Reebok', '/images/products/vay-cong-so.jpg'),
-('PRD010', 'Phụ kiện thời trang', 'CAT005', 250, 150000, 400000, 'Puma', '/images/products/vay-cong-so.jpg');
+('PRD003', 'Váy công sở', 'CAT003', 30, 200000, 400000, 'Zara', '/images/products/vay-cong-so.jpg');
 
--- Thêm dữ liệu mẫu vào bảng ProductVariant
-INSERT INTO ProductVariant (variantID, productID, size, color, quantity, material) VALUES
+INSERT INTO ProductVariant VALUES
 ('VAR001', 'PRD001', 'M', 'Đen', 30, 'Cotton'),
 ('VAR002', 'PRD001', 'L', 'Đen', 20, 'Polyester'),
 ('VAR003', 'PRD001', 'M', 'Trắng', 25, 'Cotton'),
 ('VAR004', 'PRD002', '29', 'Xanh nhạt', 15, 'Denim'),
 ('VAR005', 'PRD002', '30', 'Xanh nhạt', 20, 'Denim'),
 ('VAR006', 'PRD003', 'S', 'Đen', 10, 'Linen'),
-('VAR007', 'PRD003', 'M', 'Đen', 15, 'Linen'),
-('VAR008', 'PRD004', '42', 'Đen', 50, 'Da'),
-('VAR009', 'PRD004', '43', 'Đen', 40, 'Da'),
-('VAR010', 'PRD005', '36', 'Đỏ', 60, 'Da'),
-('VAR011', 'PRD005', '37', 'Đỏ', 50, 'Da'),
-('VAR012', 'PRD006', 'M', 'Đen', 100, 'Vải dù'),
-('VAR013', 'PRD006', 'L', 'Đen', 50, 'Vải dù'),
-('VAR014', 'PRD007', 'M', 'Xám', 80, 'Nylon'),
-('VAR015', 'PRD007', 'L', 'Xám', 40, 'Nylon'),
-('VAR016', 'PRD008', 'M', 'Xanh', 30, 'Vải thun'),
-('VAR017', 'PRD009', 'L', 'Hồng', 25, 'Vải thun');
+('VAR007', 'PRD003', 'M', 'Đen', 15, 'Linen');
 
--- Thêm dữ liệu mẫu vào bảng Supplier
 INSERT INTO Supplier VALUES
 ('SUP001', 'Công ty may mặc ABC', '123 Nguyễn Văn Cừ, Q.5, TP.HCM', 'abc@gmail.com', '0987654321'),
 ('SUP002', 'Xưởng may XYZ', '456 Lê Hồng Phong, Q.10, TP.HCM', 'xyz@gmail.com', '0987654322'),
-('SUP003', 'Nhà máy dệt may DEF', '789 Lý Thường Kiệt, Q.11, TP.HCM', 'def@gmail.com', '0987654323'),
-('SUP004', 'Công ty dệt may XYZ', '12 Đường Nguyễn Văn Linh, Q.7, TP.HCM', 'xyz1@gmail.com', '0987654324'),
-('SUP005', 'Nhà máy giày dép ABC', '56 Đường Lê Văn Sỹ, Q.3, TP.HCM', 'abc1@gmail.com', '0987654325'),
-('SUP006', 'Công ty balo T&T', '123 Đường Trần Hưng Đạo, Q.1, TP.HCM', 'ttbalo@gmail.com', '0987654326'),
-('SUP007', 'Nhà cung cấp đồ thể thao', '67 Đường Cộng Hòa, Q.Tân Bình, TP.HCM', 'do-the-thao@gmail.com', '0987654327'),
-('SUP008', 'Công ty phụ kiện thời trang', '89 Đường Võ Thị Sáu, Q.3, TP.HCM', 'phu-kien@gmail.com', '0987654328'),
-('SUP009', 'Nhà máy sản xuất thắt lưng', '45 Đường Lý Tự Trọng, Q.1, TP.HCM', 'that-lung@gmail.com', '0987654329'),
-('SUP010', 'Nhà cung cấp sản phẩm chăm sóc da', '101 Đường Phan Đình Phùng, Q. Phú Nhuận, TP.HCM', 'chamsocda@gmail.com', '0987654330');
-
+('SUP003', 'Nhà máy dệt may DEF', '789 Lý Thường Kiệt, Q.11, TP.HCM', 'def@gmail.com', '0987654323')
 
 -- Triggers
 DELIMITER //
