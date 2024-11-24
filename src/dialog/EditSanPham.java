@@ -6,7 +6,7 @@ import javax.swing.table.*;
 
 import dao.Dao_SanPham;
 import entity.SanPham;
-
+import entity.PhanLoaiSanPham;
 import java.awt.*;  
 import java.awt.event.*;  
 
@@ -26,13 +26,15 @@ public class EditSanPham extends JDialog {
   
     private static final Font INPUT_FONT = new Font("Segoe UI", Font.PLAIN, 14);
     private static final Font BUTTON_FONT = new Font("Segoe UI", Font.BOLD, 14);
-    
+   
     private JTextField txtTenSP, txtDanhMuc, txtTonKho, txtGiaBan, txtGiaNhap, txtThuongHieu;
     private JTextArea txtMoTa;
     private JLabel lblImage;
     private String imagePath = "";
     private boolean isConfirmed = false;
     private Dao_SanPham daoSanPham = new Dao_SanPham();
+    private PhanLoaiSanPham plsp = new PhanLoaiSanPham();
+   
 
     public EditSanPham(Frame owner, DefaultTableModel tableModel, int selectedRow) {  
         super(owner, "Sửa Phân Loại Sản Phẩm", true);  
@@ -129,11 +131,18 @@ public class EditSanPham extends JDialog {
         txtThuongHieu.setText(thuonghieu);
         
         String masp = (String) tableModel.getValueAt(selectedRow, 0);
+        
+        plsp.setMasp(masp);
+        
+    
         SanPham sanPham = daoSanPham.laySanPhamTheoMa(masp);
+        
 
         // Lấy đường dẫn hình ảnh
         String linkanh = sanPham.getLinhAnh();
-        System.out.println(linkanh);
+      
+        
+    
         // Tạo ImageIcon từ đường dẫn hình ảnh
 //        ImageIcon icon = new ImageIcon("images\\products\\ao-thun-nam.jpg");
         ImageIcon icon = new ImageIcon(getClass().getResource(linkanh));

@@ -329,13 +329,13 @@ public class Form_NhaCungCap extends JPanel {
             // Tạo mã nhà cung cấp mới
             String maNhaCC = "NCC" + String.format("%03d", tableModel.getRowCount() + 1);
             
-            // Lấy thông tin từ các trường nhập liệu
+
             String tenNcc = nameField.getText();
             String diaChi = addressField.getText();
             String email = emailField.getText();
             String sdt = phoneField.getText();
             
-            // Tạo đối tượng NhaCC với các thông tin đã lấy
+ 
             NhaCC nhacc = new NhaCC(maNhaCC, tenNcc, diaChi, email, sdt);
             
             // Khởi tạo Dao_NhaCungCap và gọi phương thức insert

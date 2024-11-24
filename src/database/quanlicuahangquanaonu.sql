@@ -128,12 +128,28 @@ INSERT INTO User VALUES
 INSERT INTO Category VALUES
 ('CAT001', 'Áo', 'Các loại áo'),
 ('CAT002', 'Quần', 'Các loại quần'),
-('CAT003', 'Váy', 'Các loại váy');
+('CAT003', 'Váy', 'Các loại váy'),
+('CAT004', 'Giày', 'Các loại giày'),
+('CAT005', 'Phụ kiện', 'Các loại phụ kiện thời trang'),
+('CAT006', 'Đồ thể thao', 'Các loại đồ thể thao'),
+('CAT007', 'Balo', 'Các loại balo'),
+('CAT008', 'Đồ ngủ', 'Các loại đồ ngủ'),
+('CAT009', 'Sản phẩm chăm sóc da', 'Các sản phẩm chăm sóc da'),
+('CAT010', 'Thắt lưng', 'Các loại thắt lưng');
+
 
 INSERT INTO Product VALUES
 ('PRD001', 'Áo thun nam', 'CAT001', 100, 80000, 150000, 'Nike', '/images/products/ao-thun-nam.jpg'),
 ('PRD002', 'Quần jean nữ', 'CAT002', 50, 150000, 300000, 'Levis', '/images/products/quan-jean-nu.jpg'),
-('PRD003', 'Váy công sở', 'CAT003', 30, 200000, 400000, 'Zara', '/images/products/vay-cong-so.jpg');
+('PRD003', 'Váy công sở', 'CAT003', 30, 200000, 400000, 'Zara', '/images/products/vay-cong-so.jpg'),
+('PRD004', 'Giày thể thao nam', 'CAT004', 200, 500000, 800000, 'Nike', '/images/products/vay-cong-so.jpg'),
+('PRD005', 'Giày công sở nữ', 'CAT004', 150, 700000, 1200000, 'Adidas', '/images/products/vay-cong-so.jpg'),
+('PRD006', 'Balo thời trang nam', 'CAT007', 80, 300000, 600000, 'Samsonite', '/images/products/vay-cong-so.jpg'),
+('PRD007', 'Balo học sinh', 'CAT007', 120, 200000, 400000, 'Targus', '/images/products/vay-cong-so.jpg'),
+('PRD008', 'Đồ thể thao nam', 'CAT006', 100, 350000, 700000, 'Under Armour', '/images/products/vay-cong-so.jpg'),
+('PRD009', 'Đồ thể thao nữ', 'CAT006', 90, 300000, 650000, 'Reebok', '/images/products/vay-cong-so.jpg'),
+('PRD010', 'Phụ kiện thời trang', 'CAT005', 250, 150000, 400000, 'Puma', '/images/products/vay-cong-so.jpg');
+
 
 INSERT INTO ProductVariant VALUES
 ('VAR001', 'PRD001', 'M', 'Đen', 30, 'Cotton'),
@@ -142,12 +158,29 @@ INSERT INTO ProductVariant VALUES
 ('VAR004', 'PRD002', '29', 'Xanh nhạt', 15, 'Denim'),
 ('VAR005', 'PRD002', '30', 'Xanh nhạt', 20, 'Denim'),
 ('VAR006', 'PRD003', 'S', 'Đen', 10, 'Linen'),
-('VAR007', 'PRD003', 'M', 'Đen', 15, 'Linen');
+('VAR007', 'PRD003', 'M', 'Đen', 15, 'Linen'),
+('VAR008', 'PRD004', '42', 'Đen', 50, 'Da'),
+('VAR009', 'PRD004', '43', 'Đen', 40, 'Da'),
+('VAR010', 'PRD005', '36', 'Đỏ', 60, 'Da'),
+('VAR011', 'PRD005', '37', 'Đỏ', 50, 'Da'),
+('VAR012', 'PRD006', 'M', 'Đen', 100, 'Vải dù'),
+('VAR013', 'PRD006', 'L', 'Đen', 50, 'Vải dù'),
+('VAR014', 'PRD007', 'M', 'Xám', 80, 'Nylon'),
+('VAR015', 'PRD007', 'L', 'Xám', 40, 'Nylon'),
+('VAR016', 'PRD008', 'M', 'Xanh', 30, 'Vải thun'),
+('VAR017', 'PRD009', 'L', 'Hồng', 25, 'Vải thun');
 
 INSERT INTO Supplier VALUES
 ('SUP001', 'Công ty may mặc ABC', '123 Nguyễn Văn Cừ, Q.5, TP.HCM', 'abc@gmail.com', '0987654321'),
 ('SUP002', 'Xưởng may XYZ', '456 Lê Hồng Phong, Q.10, TP.HCM', 'xyz@gmail.com', '0987654322'),
-('SUP003', 'Nhà máy dệt may DEF', '789 Lý Thường Kiệt, Q.11, TP.HCM', 'def@gmail.com', '0987654323')
+('SUP003', 'Nhà máy dệt may DEF', '789 Lý Thường Kiệt, Q.11, TP.HCM', 'def@gmail.com', '0987654323'),
+('SUP004', 'Công ty dệt may XYZ', '12 Đường Nguyễn Văn Linh, Q.7, TP.HCM', 'xyz1@gmail.com', '0987654324'),
+('SUP005', 'Nhà máy giày dép ABC', '56 Đường Lê Văn Sỹ, Q.3, TP.HCM', 'abc1@gmail.com', '0987654325'),
+('SUP006', 'Công ty balo T&T', '123 Đường Trần Hưng Đạo, Q.1, TP.HCM', 'ttbalo@gmail.com', '0987654326'),
+('SUP007', 'Nhà cung cấp đồ thể thao', '67 Đường Cộng Hòa, Q.Tân Bình, TP.HCM', 'do-the-thao@gmail.com', '0987654327'),
+('SUP008', 'Công ty phụ kiện thời trang', '89 Đường Võ Thị Sáu, Q.3, TP.HCM', 'phu-kien@gmail.com', '0987654328'),
+('SUP009', 'Nhà máy sản xuất thắt lưng', '45 Đường Lý Tự Trọng, Q.1, TP.HCM', 'that-lung@gmail.com', '0987654329'),
+('SUP010', 'Nhà cung cấp sản phẩm chăm sóc da', '101 Đường Phan Đình Phùng, Q. Phú Nhuận, TP.HCM', 'chamsocda@gmail.com', '0987654330');
 
 -- Triggers
 DELIMITER //
@@ -595,3 +628,71 @@ BEGIN
 END $$
 
 DELIMITER ;
+-- ----------------- phân loại sản phẩm
+-- lấy thông tin phân loại 
+DELIMITER $$
+
+CREATE PROCEDURE GetProductVariantsByProductID(IN inputProductID VARCHAR(36))
+BEGIN
+    SELECT 
+		pv.variantID,
+        pv.color,
+        pv.size,
+        pv.material
+    FROM 
+        ProductVariant pv
+    WHERE 
+        pv.productID = inputProductID;
+END $$
+
+DELIMITER ;
+-- insert phân loại lúc thêm phân loại 
+DELIMITER $$
+
+CREATE PROCEDURE InsertProductVariant(
+	IN inputvariantID VARCHAR(36),
+    IN inputProductID VARCHAR(36),
+    IN inputColor VARCHAR(50),
+    IN inputSize VARCHAR(10),
+    IN inputMaterial NVARCHAR(255)
+)
+BEGIN
+    INSERT INTO ProductVariant (variantID,productID, color, size, material)
+    VALUES (inputvariantID,inputProductID, inputColor, inputSize, inputMaterial);
+END $$
+
+DELIMITER ;
+-- xóa phân loại sản phẩm
+DELIMITER $$
+
+CREATE PROCEDURE DeleteProductVariant(
+    IN inputVariantID VARCHAR(36)
+)
+BEGIN
+    DELETE FROM ProductVariant
+    WHERE variantID = inputVariantID;
+END $$
+
+DELIMITER ;
+-- sửa phân loại 
+DELIMITER $$
+
+CREATE PROCEDURE UpdateProductVariant(
+    IN inputVariantID VARCHAR(36),
+    IN inputColor VARCHAR(50),
+    IN inputSize VARCHAR(10),
+    IN inputMaterial NVARCHAR(255)
+)
+BEGIN
+    -- Cập nhật thông tin ProductVariant
+    UPDATE ProductVariant
+    SET color = inputColor,
+        size = inputSize,
+        material = inputMaterial
+    WHERE variantID = inputVariantID;
+END $$
+
+DELIMITER ;
+
+
+

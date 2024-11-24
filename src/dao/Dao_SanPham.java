@@ -304,6 +304,27 @@ public class Dao_SanPham {
 
         return sanPham; // Trả về đối tượng SanPham hoặc null nếu không tìm thấy
     }
+    public ArrayList<String> getAllCategoryNames() {
+        ArrayList<String> categoryNames = new ArrayList<>();
+        String sql = "{CALL GetAllCategoryNames()}";  // Stored procedure call
+
+        try (CallableStatement stmt = con.prepareCall(sql)) {
+            // Thực thi stored procedure
+            ResultSet rs = stmt.executeQuery();
+
+            // Duyệt qua kết quả và thêm vào danh sách
+            while (rs.next()) {
+                String categoryName = rs.getString("name");
+                categoryNames.add(categoryName);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return categoryNames;  // Trả về danh sách tên danh mục
+    }
+
 
 
     
