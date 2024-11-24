@@ -307,7 +307,7 @@ public class SuaPhanLoai extends JDialog {
                  }
                  JOptionPane.showMessageDialog(this, "Xóa thành công");
         	}else {
-        		JOptionPane.showMessageDialog(this, "Đang còn sản phẩm không thể xóa phân loại");
+        		JOptionPane.showMessageDialog(this, "Xóa Thất bại");
         	}
            
         }

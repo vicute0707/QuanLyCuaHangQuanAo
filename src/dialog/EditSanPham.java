@@ -108,7 +108,8 @@ public class EditSanPham extends JDialog {
         ));
         txtMoTa.setLineWrap(true);
         txtMoTa.setWrapStyleWord(true);
-
+        String masp = (String) tableModel.getValueAt(selectedRow, 0);
+        SanPham sanPham = daoSanPham.laySanPhamTheoMa(masp);
         // Add components to form panel với label style mới
         addFormRow(formPanel, "Tên sản phẩm:", txtTenSP, 0);
         addFormRow(formPanel, "Danh mục:", txtDanhMuc, 1);
@@ -116,26 +117,25 @@ public class EditSanPham extends JDialog {
         addFormRow(formPanel, "Giá bán:", txtGiaBan, 3);
         addFormRow(formPanel, "Giá nhập:", txtGiaNhap, 4);
         addFormRow(formPanel, "Thương hiệu:", txtThuongHieu, 5);
-        String tenSP = (String) tableModel.getValueAt(selectedRow, 1);
-        String tenDm =  (String) tableModel.getValueAt(selectedRow, 2);
-        String tonkho =  (String) tableModel.getValueAt(selectedRow, 3);
-        String gianhap =  (String) tableModel.getValueAt(selectedRow, 4);
-        String giaban =  (String) tableModel.getValueAt(selectedRow, 5);
-        String thuonghieu =  (String) tableModel.getValueAt(selectedRow, 6);
+        String tenSP = sanPham.getTenSP();
+        String tenDm =  sanPham.getDanhmuc().getTenDM();
+        int tonkho =  sanPham.getSoLuongTonKho();
+        double gianhap =  sanPham.getGiaNhap();
+        double giaban =  sanPham.getGiaBan();
+        String thuonghieu =  sanPham.getThuongHieu();
         
         txtTenSP.setText(tenSP); 
-        txtDanhMuc.setText(tonkho);
-        txtTonKho.setText(tonkho);
-        txtGiaBan.setText(giaban );
-        txtGiaNhap.setText(gianhap );
+        txtDanhMuc.setText(tenDm);
+        txtTonKho.setText(String.valueOf(tonkho));
+        txtGiaBan.setText(String.valueOf(giaban) );
+        txtGiaNhap.setText(String.valueOf(gianhap) );
         txtThuongHieu.setText(thuonghieu);
         
-        String masp = (String) tableModel.getValueAt(selectedRow, 0);
         
         plsp.setMasp(masp);
         
     
-        SanPham sanPham = daoSanPham.laySanPhamTheoMa(masp);
+        
         
 
         // Lấy đường dẫn hình ảnh
@@ -143,8 +143,6 @@ public class EditSanPham extends JDialog {
       
         
     
-        // Tạo ImageIcon từ đường dẫn hình ảnh
-//        ImageIcon icon = new ImageIcon("images\\products\\ao-thun-nam.jpg");
         ImageIcon icon = new ImageIcon(getClass().getResource(linkanh));
 
 

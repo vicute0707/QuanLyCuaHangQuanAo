@@ -2,6 +2,8 @@ package dao;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -323,6 +325,48 @@ public class Dao_SanPham {
         }
 
         return categoryNames;  // Trả về danh sách tên danh mục
+    }
+
+    
+ // Phương thức thêm sản phẩm
+    public boolean themSanPham(String productID , String productName, String categoryName, double sellPrice, String brand, String imagePath) {
+        String sql = "{CALL addProduct(?, ?, ?, ?, ?, ?)}";  // Gọi stored procedure addProduct
+        
+        try (CallableStatement cs = con.prepareCall(sql)) {
+            
+            cs.setString(1, productID);   
+            cs.setString(2, productName); 
+            cs.setString(3, categoryName); 
+            cs.setDouble(4, sellPrice);   
+            cs.setString(5, brand);       
+            cs.setString(6, imagePath);   
+            cs.executeUpdate();  
+
+            return true;  // Trả về true nếu thành công
+
+        } catch (SQLException e) {
+            e.printStackTrace();  // In lỗi nếu có
+        }
+
+        return false;  // Trả về false nếu có lỗi
+    }
+    
+ // Phương thức để lấy categoryID theo name
+    public String getCategoryIDByName(String categoryName) {
+        String categoryID = null;
+        String sql = "SELECT categoryID FROM Category WHERE name = ?";
+
+        try (PreparedStatement preparedStatement = con.prepareStatement(sql)) {  // Sử dụng kết nối con đã được khởi tạo
+            preparedStatement.setString(1, categoryName);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    categoryID = resultSet.getString("categoryID");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return categoryID; 
     }
 
 

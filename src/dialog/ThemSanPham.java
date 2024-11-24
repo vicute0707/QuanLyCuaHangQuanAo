@@ -5,7 +5,9 @@ import javax.swing.border.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import dao.Dao_SanPham;
+import entity.ThemSanPhamTam;
 import gui.Form_SanPham;
+
 
 import java.awt.*;
 import java.awt.event.*;
@@ -21,7 +23,7 @@ public class ThemSanPham extends JDialog {
     private static final Font LABEL_FONT = new Font("Segoe UI", Font.PLAIN, 14);
     private static final Font INPUT_FONT = new Font("Segoe UI", Font.PLAIN, 14);
     private static final Font BUTTON_FONT = new Font("Segoe UI", Font.BOLD, 14);
-    
+    private ThemSanPhamTam tam = new ThemSanPhamTam();
     private JTextField txtTenSP, txtTonKho, txtGiaBan, txtGiaNhap, txtThuongHieu;
     private JTextArea txtMoTa;
     private JLabel lblImage;
@@ -95,7 +97,7 @@ public class ThemSanPham extends JDialog {
         txtDanhMuc = new JComboBox(); // Khởi tạo combo box rỗng
         txtDanhMuc.setFont(new Font("Times New Roman", Font.PLAIN, 14));
         fillCategoryNamesToComboBox();
-        txtTonKho = createStyledTextField();
+       
         txtGiaBan = createStyledTextField();
         txtGiaNhap = createStyledTextField();
         txtThuongHieu = createStyledTextField();
@@ -113,11 +115,10 @@ public class ThemSanPham extends JDialog {
         // Add components to form panel với label style mới
         addFormRow(formPanel, "Tên sản phẩm:", txtTenSP, 0);
         addFormRow(formPanel, "Danh mục:", txtDanhMuc, 1);
-        addFormRow(formPanel, "Tồn kho:", txtTonKho, 2);
-        addFormRow(formPanel, "Giá bán:", txtGiaBan, 3);
-        addFormRow(formPanel, "Giá nhập:", txtGiaNhap, 4);
-        addFormRow(formPanel, "Thương hiệu:", txtThuongHieu, 5);
-        addFormRow(formPanel, "Mô tả:", new JScrollPane(txtMoTa), 6);
+        addFormRow(formPanel, "Giá bán:", txtGiaBan, 2);
+        
+        addFormRow(formPanel, "Thương hiệu:", txtThuongHieu, 3);
+      
 
         // Button Panel với style mới
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
@@ -127,8 +128,13 @@ public class ThemSanPham extends JDialog {
         JButton btnCancel = createStyledButton("Hủy bỏ", new Color(255, 182, 193));
         
         btnPhanLoai.addActionListener(e -> {
+        	tam.setLinkanh(imagePath);
+        	tam.setTxtGiaBan(txtGiaBan.getText());
+        	tam.setTxtTenSP(txtTenSP.getText());
+        	tam.setTxtThuongHieu(txtThuongHieu.getText());
+        	tam.setTxtDanhMuc((String) txtDanhMuc.getSelectedItem());
         	ThemPhanLoai dialog = new ThemPhanLoai((Frame) SwingUtilities.getWindowAncestor(ThemSanPham.this));
-        
+        	
             dialog.setVisible(true);
         });
         btnPhanLoai.setPreferredSize(new Dimension(160,40));

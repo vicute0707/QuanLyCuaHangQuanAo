@@ -401,7 +401,7 @@ DELIMITER ;
 
 
 
--- ----------------------------danh mục
+-- ----------------------------danh mục -----------------------------------------------------------------
 -- insert
 DELIMITER $$
 
@@ -431,7 +431,17 @@ END$$
 
 DELIMITER ;
 -- --------------------
---- xóa danh mục
+DELIMITER $$
+
+CREATE PROCEDURE GetAllCategoryNames()
+BEGIN
+   
+    SELECT name FROM Category;
+END $$
+
+DELIMITER ;
+
+-- - xóa danh mục
 DELIMITER $$
 
 CREATE PROCEDURE DeleteCategoryByID(
@@ -443,7 +453,7 @@ BEGIN
 END$$
 
 DELIMITER ;
-------cập nhật danh mục
+-- ----cập nhật danh mục
 DELIMITER $$
 
 CREATE PROCEDURE UpdateCategoryByID(
@@ -497,7 +507,11 @@ DELIMITER ;
 
 
 
--- Sản Phẩm -----------------------------------------------------
+
+
+
+
+-- -------------------------------------Sản Phẩm -----------------------------------------------------
 -- lấy dữ liệu sản phẩm
 DELIMITER $$
 
@@ -550,6 +564,45 @@ BEGIN
 END$$
 
 DELIMITER ;
+-- thêm sản phẩm
+DELIMITER $$
+
+CREATE PROCEDURE AddProduct(
+    IN productID VARCHAR(36),
+    IN productName VARCHAR(200),
+    IN categoryID VARCHAR(36),
+    IN sellPrice DECIMAL(10, 2),
+    IN brand VARCHAR(100),
+    IN imagePath VARCHAR(255)
+)
+BEGIN
+    -- Kiểm tra xem categoryID có tồn tại hay không
+    DECLARE categoryExists INT;
+
+    -- Kiểm tra categoryID có tồn tại trong bảng Category
+    SELECT COUNT(*)
+    INTO categoryExists
+    FROM Category
+    WHERE categoryID = categoryID;
+
+    -- Nếu categoryID không tồn tại, trả về lỗi
+    IF categoryExists = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Category does not exist';
+    ELSE
+        -- Nếu categoryID tồn tại, thêm sản phẩm vào bảng Product
+        INSERT INTO Product (
+            productID, name, category, sellPrice, brand, imagePath
+        )
+        VALUES (
+            productID, productName, categoryID, sellPrice, brand, imagePath
+        );
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+
 
 
 -- tìm kiếm ---------------------------------------------------------
@@ -628,7 +681,7 @@ BEGIN
 END $$
 
 DELIMITER ;
--- ----------------- phân loại sản phẩm
+-- ----------------- phân loại sản phẩm---------------------------------
 -- lấy thông tin phân loại 
 DELIMITER $$
 
@@ -693,6 +746,18 @@ BEGIN
 END $$
 
 DELIMITER ;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

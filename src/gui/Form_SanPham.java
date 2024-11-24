@@ -39,6 +39,7 @@ import dialog.TimSanPham;
 
 import entity.NhaCC;
 import entity.SanPham;
+import entity.ThemSanPhamTam;
 import gui.Form_NhaCungCap.TimNhaCungCap;
 
 public class Form_SanPham extends JPanel {
@@ -49,7 +50,7 @@ public class Form_SanPham extends JPanel {
     private static final Font HEADER_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 12);
     private static final Font CONTENT_FONT = new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 12);
     private int selectedRow = -1; // Thêm biến để lưu hàng được chọn
-
+    private ThemSanPhamTam tam = new ThemSanPhamTam();
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField searchField;
@@ -246,7 +247,7 @@ public class Form_SanPham extends JPanel {
                     JOptionPane.WARNING_MESSAGE);
             } else {
                 int confirm = JOptionPane.showConfirmDialog(Form_SanPham.this,
-                    "Bạn có chắc muốn xóa danh mục này?",
+                    "Bạn có chắc muốn xóa sản phẩm này?",
                     "Xác nhận xóa",
                     JOptionPane.YES_NO_OPTION);
                     
@@ -387,6 +388,8 @@ public class Form_SanPham extends JPanel {
         
         // Create scroll pane with custom ScrollBarUI
         JScrollPane scrollPane = new JScrollPane(table);
+        String masp = "PRD" + String.format("%03d", tableModel.getRowCount() + 1);
+        tam.setMaSP(masp);
         scrollPane.getViewport().setBackground(Color.WHITE);
         scrollPane.setBackground(Color.white);
         scrollPane.setBorder(BorderFactory.createCompoundBorder(

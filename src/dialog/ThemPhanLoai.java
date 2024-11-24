@@ -6,7 +6,9 @@ import javax.swing.table.*;
 
 import entity.PhanLoaiSanPham;
 import entity.SanPham;
+import entity.ThemSanPhamTam;
 import dao.Dao_PhanLoaiSanPham;
+import dao.Dao_SanPham;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -25,6 +27,8 @@ public class ThemPhanLoai extends JDialog {
     private DefaultTableModel tableModel;
     private boolean isConfirmed = false;
     private Dao_PhanLoaiSanPham dao = new Dao_PhanLoaiSanPham();
+    private ThemSanPhamTam tam = new ThemSanPhamTam();
+    private Dao_SanPham daoSanPham = new Dao_SanPham();
     public ThemPhanLoai(Frame owner) {
         super(owner, "Thêm Phân Loại Sản Phẩm", true);
         initComponents();
@@ -35,7 +39,7 @@ public class ThemPhanLoai extends JDialog {
         setBackground(Color.WHITE);
 
         // Header
-        JLabel headerLabel = new JLabel("THÊM SẢN PHẨM LOẠI SẢN PHẨM", SwingConstants.CENTER);
+        JLabel headerLabel = new JLabel("THÊM PHÂN LOẠI SẢN PHẨM", SwingConstants.CENTER);
         headerLabel.setFont(HEADER_FONT);
         headerLabel.setForeground(PRIMARY_COLOR);
         headerLabel.setBorder(new EmptyBorder(20, 0, 20, 0));
@@ -118,6 +122,45 @@ public class ThemPhanLoai extends JDialog {
         btnLamMoi.addActionListener(e -> clearFields());
         btnSave.addActionListener(e -> {
             isConfirmed = true;
+            
+            
+         // Kiểm tra xem bảng có dữ liệu không (số lượng hàng lớn hơn 0)
+            if (tableModel.getRowCount() > 0) {
+                for (int row = 0; row < tableModel.getRowCount(); row++) {         
+                    String variantID = (String) tableModel.getValueAt(row, 1);  
+                    String productID = tam.getMaSP();  // Lấy "Mã PL"
+                    String color = (String) tableModel.getValueAt(row, 2);      
+                    String size = (String) tableModel.getValueAt(row, 3);      
+                    String material = (String) tableModel.getValueAt(row, 4);   
+                    boolean success = dao.insertProductVariant(variantID, productID, color, size, material);
+                    if (success) {
+                        System.out.println("Inserted successfully: " + variantID);
+                    } else {
+                        System.out.println("Failed to insert: " + variantID);
+                    }
+                }
+            } else {
+                
+                System.out.println("The table is empty. No data to insert.");
+            }
+
+            
+            
+            
+            String masp = tam.getMaSP();
+            String ten = tam.getTxtTenSP();
+            
+            String madm = daoSanPham.getCategoryIDByName(tam.getTxtDanhMuc());
+            double  giaban = Double.parseDouble(tam.getTxtGiaBan());
+            String brand = tam.getTxtThuongHieu();
+            String linkanh = tam.getLinkanh();
+            if(daoSanPham.themSanPham(masp, ten, madm, giaban, brand, linkanh)) {
+            	JOptionPane.showMessageDialog(this, "Thêm Sản phẩm thành công");
+            }
+            
+            
+            
+            
             dispose();
         });
         btnCancel.addActionListener(e -> dispose());
@@ -201,6 +244,7 @@ public class ThemPhanLoai extends JDialog {
         panel.setBackground(Color.WHITE);
         panel.add(scrollPane, BorderLayout.CENTER);
         panel.setBorder(new EmptyBorder(0, 20, 0, 10));
+        
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {	
@@ -211,7 +255,8 @@ public class ThemPhanLoai extends JDialog {
                 
             }
         });
-
+       
+        
         return panel;
     }
     
@@ -225,7 +270,7 @@ public class ThemPhanLoai extends JDialog {
         String mauSac = txtMauSac.getText().trim();
         String kichCo = txtKichCo.getText().trim();
         String chatLieu = txtChatLieu.getText().trim();
-        String masp = null;
+   
 
         if (mauSac.isEmpty() || kichCo.isEmpty() || chatLieu.isEmpty()) {
             JOptionPane.showMessageDialog(this,
@@ -307,7 +352,7 @@ public class ThemPhanLoai extends JDialog {
                  }
                  JOptionPane.showMessageDialog(this, "Xóa thành công");
         	}else {
-        		JOptionPane.showMessageDialog(this, "Đang còn sản phẩm không thể xóa phân loại");
+        		JOptionPane.showMessageDialog(this, "Xóa thất bại");
         	}
            
         }
@@ -324,19 +369,6 @@ public class ThemPhanLoai extends JDialog {
         return isConfirmed;
     }
 
-    // Methods to get variant data
-    public Object[][] getVariantData() {
-        int rowCount = tableModel.getRowCount();
-        Object[][] data = new Object[rowCount][4]; // Excluding STT column
-        
-        for (int i = 0; i < rowCount; i++) {
-            data[i][0] = tableModel.getValueAt(i, 1); // Màu sắc
-            data[i][1] = tableModel.getValueAt(i, 2); // Kích cỡ
-            data[i][2] = tableModel.getValueAt(i, 3); // Chất liệu
-            data[i][3] = tableModel.getValueAt(i, 4); // Thương hiệu
-        }
-        
-        return data;
-    }
+
     
 }
