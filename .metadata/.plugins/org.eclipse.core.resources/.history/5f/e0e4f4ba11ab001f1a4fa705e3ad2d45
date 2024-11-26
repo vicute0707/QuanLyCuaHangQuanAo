@@ -1,0 +1,7 @@
+package dialog;
+
+import javax.swing.JDialog;
+
+public class ThemNhaCungCap extends JDialog{
+	
+}

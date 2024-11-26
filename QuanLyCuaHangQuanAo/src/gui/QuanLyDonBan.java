@@ -2,6 +2,17 @@ package gui;
 
 import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
 import com.toedter.calendar.JDateChooser;
+
+import component.CreateDateChooser;
+import component.ShowSuccessDialog;
+import dialog.ChiTietPhieuBan;
+import dialog.ChiTietPhieuNhap;
+import style.CreateActionButton;
+import style.CreateFilter;
+import style.CreateRoundedButton;
+import style.CustomScrollBarUI;
+import style.StyleComboBox;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -17,6 +28,8 @@ import java.util.Date;
 import javax.swing.plaf.basic.BasicComboBoxUI;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
@@ -25,10 +38,9 @@ public class QuanLyDonBan extends JPanel {
     private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
     private static final Color CONTENT_COLOR = new Color(255, 242, 242);
     private static final Color HOVER_COLOR = new Color(252, 231, 243);
-    private static final Font HEADER_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 12);
+    private static final Font HEADER_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 14);
     private static final Font CONTENT_FONT = new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 12);
     private static final Font TITLE_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 16);
-
     // Components
     private JTable table;
     private DefaultTableModel tableModel;
@@ -40,19 +52,18 @@ public class QuanLyDonBan extends JPanel {
     private JComboBox<String> employeeCombo;
     private JLabel totalRecordsValue;
     private JLabel totalAmountValue;
-
+    CreateFilter createFilter ;
     public QuanLyDonBan() {
+    	createFilter = new CreateFilter();
         initializeComponents();
         setupLayout();
         loadSampleData();
-    }
-
+        }
     private void initializeComponents() {
         // Initialize labels
         totalRecordsValue = new JLabel("0");
         totalRecordsValue.setFont(HEADER_FONT);
         totalRecordsValue.setForeground(PRIMARY_COLOR);
-
         totalAmountValue = new JLabel("0 VND");
         totalAmountValue.setFont(HEADER_FONT);
         totalAmountValue.setForeground(PRIMARY_COLOR);
@@ -113,8 +124,6 @@ public class QuanLyDonBan extends JPanel {
         rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
         table.getColumnModel().getColumn(4).setCellRenderer(rightRenderer); // Tổng tiền
 
-        // Add popup menu
-        table.setComponentPopupMenu(createTablePopupMenu());
     }
 
     private void initializeFilterComponents() {
@@ -124,19 +133,21 @@ public class QuanLyDonBan extends JPanel {
             "Trần Thị Bình",
             "Lê Hoàng Nam"
         });
-        styleComboBox(employeeCombo);
+        StyleComboBox styleComboBox = new StyleComboBox();
+        styleComboBox.styleComboBox(employeeCombo);
 
         // Initialize date choosers
-        fromDateChooser = createDateChooser();
-        toDateChooser = createDateChooser();
+        CreateDateChooser dateStyle = new CreateDateChooser();
+        fromDateChooser = dateStyle.createDateChooser();
+        toDateChooser = dateStyle.createDateChooser();
 
         // Initialize amount fields
         NumberFormat format = NumberFormat.getIntegerInstance();
         format.setGroupingUsed(true);
         fromAmountField = new JFormattedTextField(format);
         toAmountField = new JFormattedTextField(format);
-        styleFormattedTextField(fromAmountField);
-        styleFormattedTextField(toAmountField);
+        createFilter.styleFormattedTextField(fromAmountField);
+        createFilter.styleFormattedTextField(toAmountField);
     }
 
     private void setupLayout() {
@@ -157,24 +168,43 @@ public class QuanLyDonBan extends JPanel {
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
         searchPanel.setBackground(Color.WHITE);
         searchPanel.add(searchField);
-        searchPanel.add(createSearchButton());
+        
+        searchPanel.add(createFilter.createSearchButton());
 
         // Action buttons panel
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         actionPanel.setBackground(Color.WHITE);
-
-        JButton addButton = createActionButton("Thêm đơn bán", "/icon/circle-plus.png", true, true);
+        CreateActionButton createActionButton = new CreateActionButton();
+        JButton addButton = createActionButton.createActionButton("Thêm đơn bán", "/icon/circle-plus.png", true, true);
         addButton.setPreferredSize(new Dimension(160, 38));
         
-        JButton deleteButton = createActionButton("Xóa", "/icon/trash.png", true, false);
-        JButton aboutButton = createActionButton("About", "/icon/info.png", true, false);
+        JButton deleteButton = createActionButton.createActionButton("Xóa", "/icon/trash.png", true, false);
+        JButton aboutButton = createActionButton.createActionButton("About", "/icon/info.png", true, false);
         
-        JButton exportButton = createActionButton("Xuất Excel", "/icon/printer.png", true, false);
+        JButton exportButton = createActionButton.createActionButton("Xuất Excel", "/icon/printer.png", true, false);
         exportButton.setPreferredSize(new Dimension(160, 38));
 
         actionPanel.add(addButton);
+        addButton.addActionListener(e -> {
+            // Tìm panel cha chứa nội dung chính
+            Container mainContent = QuanLyDonBan.this.getParent();
+            
+            // Xóa nội dung hiện tại của panel chính
+            mainContent.removeAll();
+            
+            // Thêm panel ThemDonNhap mới vào panel chính với BorderLayout.CENTER
+            ThemDonBan addPanel = new ThemDonBan();
+            mainContent.add(addPanel, BorderLayout.CENTER);
+            
+            // Cập nhật và vẽ lại giao diện
+            mainContent.revalidate();
+            mainContent.repaint();
+        });
         actionPanel.add(deleteButton);
+        deleteButton.addActionListener(e -> {deleteRecord();});
         actionPanel.add(aboutButton);
+        ChiTietPhieuBan chiTietPhieuBan = new ChiTietPhieuBan();
+        aboutButton.addActionListener(e->{chiTietPhieuBan.viewDetail(table);});
         actionPanel.add(exportButton);
 
         panel.add(searchPanel, BorderLayout.WEST);
@@ -195,25 +225,19 @@ public class QuanLyDonBan extends JPanel {
             )
         ));
         filterPanel.setPreferredSize(new Dimension(350, 200));
-
-        filterPanel.add(createFilterTitle());
+        filterPanel.add(createFilter.createFilterTitle());
         filterPanel.add(Box.createVerticalStrut(20));
-        
         // Nhân viên
-        filterPanel.add(createFilterField("Nhân viên bán hàng", employeeCombo));
+        filterPanel.add(createFilter.createFilterField("Nhân viên bán hàng", employeeCombo));
         filterPanel.add(Box.createVerticalStrut(15));
-
         // Thời gian
         filterPanel.add(createDateFilterPanel());
         filterPanel.add(Box.createVerticalStrut(15));
-
         // Khoảng tiền
         filterPanel.add(createAmountFilterPanel());
         filterPanel.add(Box.createVerticalStrut(25));
-
         // Buttons
-        filterPanel.add(createFilterButtonsPanel());
-
+        filterPanel.add(createFilter.createFilterButtonsPanel());
         return filterPanel;
     }
 
@@ -237,86 +261,9 @@ public class QuanLyDonBan extends JPanel {
         updateSummary();
     }
 
-    // Rest of the utility methods (createDateChooserPanel, styleComboBox, etc.) remain the same
-    // Only changing the context from "phiếu nhập" to "đơn bán" in messages and tooltips
-
-    private JPopupMenu createTablePopupMenu() {
-        JPopupMenu popup = new JPopupMenu();
-        popup.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230)));
-
-        JMenuItem viewItem = createMenuItem("Xem chi tiết", e -> viewDetail());
-        JMenuItem editItem = createMenuItem("Chỉnh sửa", e -> editRecord());
-        JMenuItem deleteItem = createMenuItem("Xóa", e -> deleteRecord());
-        JMenuItem printItem = createMenuItem("In đơn bán", e -> printRecord());
-
-        popup.add(viewItem);
-        popup.add(editItem);
-        popup.addSeparator();
-        popup.add(deleteItem);
-        popup.addSeparator();
-        popup.add(printItem);
-
-        return popup;
-    }
-
-    // The rest of the methods remain similar to QuanLyNhapHang
-    // Just changing context from "phiếu nhập" to "đơn bán" where appropriate
-    
-    private void viewDetail() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow != -1) {
-            String id = table.getValueAt(selectedRow, 1).toString();
-            JOptionPane.showMessageDialog(this,
-                "Xem chi tiết đơn bán " + id,
-                "Chi tiết đơn bán",
-                JOptionPane.INFORMATION_MESSAGE);
-        }
-    }
-
-    private void editRecord() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow != -1) {
-            String id = table.getValueAt(selectedRow, 1).toString();
-            JOptionPane.showMessageDialog(this,
-                "Chỉnh sửa đơn bán " + id,
-                "Chỉnh sửa đơn bán",
-                JOptionPane.INFORMATION_MESSAGE);
-        }
-    }
-
-    private void deleteRecord() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow != -1) {
-            String id = table.getValueAt(selectedRow, 1).toString();
-            int option = JOptionPane.showConfirmDialog(this,
-                "Bạn có chắc muốn xóa đơn bán " + id + "?",
-                "Xác nhận xóa",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE);
-            
-            if (option == JOptionPane.YES_OPTION) {
-                tableModel.removeRow(selectedRow);
-                updateSummary();
-                // Cập nhật lại STT sau khi xóa
-                updateSTTColumn();
-            }
-        }
-    }
-
     private void updateSTTColumn() {
         for (int i = 0; i < tableModel.getRowCount(); i++) {
             tableModel.setValueAt(String.valueOf(i + 1), i, 0);
-        }
-    }
-
-    private void printRecord() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow != -1) {
-            String id = table.getValueAt(selectedRow, 1).toString();
-            JOptionPane.showMessageDialog(this,
-                "In đơn bán " + id,
-                "In đơn bán",
-                JOptionPane.INFORMATION_MESSAGE);
         }
     }
     private JPanel createMainPanel() {
@@ -332,59 +279,11 @@ public class QuanLyDonBan extends JPanel {
         // Tùy chỉnh thanh cuộn
         JScrollBar verticalScrollBar = scrollPane.getVerticalScrollBar();
         JScrollBar horizontalScrollBar = scrollPane.getHorizontalScrollBar();
-        
+        CustomScrollBarUI customScrollBarUI = new CustomScrollBarUI();	
         // Tạo UI tùy chỉnh cho thanh cuộn
-        verticalScrollBar.setUI(new BasicScrollBarUI() {
-            @Override
-            protected void configureScrollBarColors() {
-                this.thumbColor = PRIMARY_COLOR;
-                this.trackColor = new Color(245, 245, 245);
-            }
-
-            @Override
-            protected JButton createDecreaseButton(int orientation) {
-                return createZeroButton();
-            }
-
-            @Override
-            protected JButton createIncreaseButton(int orientation) {
-                return createZeroButton();
-            }
-
-            private JButton createZeroButton() {
-                JButton button = new JButton();
-                button.setPreferredSize(new Dimension(0, 0));
-                button.setMinimumSize(new Dimension(0, 0));
-                button.setMaximumSize(new Dimension(0, 0));
-                return button;
-            }
-        });
+        verticalScrollBar.setUI(customScrollBarUI);
         
-        horizontalScrollBar.setUI(new BasicScrollBarUI() {
-            @Override
-            protected void configureScrollBarColors() {
-                this.thumbColor = PRIMARY_COLOR;
-                this.trackColor = new Color(245, 245, 245);
-            }
-
-            @Override
-            protected JButton createDecreaseButton(int orientation) {
-                return createZeroButton();
-            }
-
-            @Override
-            protected JButton createIncreaseButton(int orientation) {
-                return createZeroButton();
-            }
-
-            private JButton createZeroButton() {
-                JButton button = new JButton();
-                button.setPreferredSize(new Dimension(0, 0));
-                button.setMinimumSize(new Dimension(0, 0));
-                button.setMaximumSize(new Dimension(0, 0));
-                return button;
-            }
-        });
+        horizontalScrollBar.setUI(customScrollBarUI);
 
         // Add components
         mainPanel.add(scrollPane, BorderLayout.CENTER);
@@ -413,39 +312,6 @@ public class QuanLyDonBan extends JPanel {
         return panel;
     }
 
-    private JLabel createFilterTitle() {
-        JLabel titleLabel = new JLabel("Lọc kết quả");
-        titleLabel.setFont(TITLE_FONT);
-        titleLabel.setForeground(PRIMARY_COLOR);
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        return titleLabel;
-    }
-
-    private JPanel createFilterField(String label, JComponent component) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(CONTENT_COLOR);
-        panel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel titleLabel = new JLabel(label);
-        titleLabel.setFont(CONTENT_FONT);
-        titleLabel.setForeground(Color.BLACK);
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        component.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        String tooltipText = getTooltipText(label);
-        if (tooltipText != null) {
-            component.setToolTipText(tooltipText);
-        }
-
-        panel.add(titleLabel);
-        panel.add(Box.createVerticalStrut(8));
-        panel.add(component);
-
-        return panel;
-    }
-
     private JPanel createDateFilterPanel() {
     	JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -457,19 +323,15 @@ public class QuanLyDonBan extends JPanel {
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         panel.add(titleLabel);
         panel.add(Box.createVerticalStrut(8)); // Giảm khoảng cách
-
         // Tạo panel chứa cả 2 date chooser
         JPanel dateChoosersPanel = new JPanel();
         dateChoosersPanel.setLayout(new BoxLayout(dateChoosersPanel, BoxLayout.Y_AXIS));
         dateChoosersPanel.setBackground(CONTENT_COLOR);
-
-        JPanel fromDatePanel = createDateChooserPanel("Từ ngày:", fromDateChooser);
-        JPanel toDatePanel = createDateChooserPanel("Đến ngày:", toDateChooser);
-
+        JPanel fromDatePanel = createFilter.createDateChooserPanel("Từ ngày:", fromDateChooser);
+        JPanel toDatePanel = createFilter.createDateChooserPanel("Đến ngày:", toDateChooser);
         dateChoosersPanel.add(fromDatePanel);
         dateChoosersPanel.add(Box.createVerticalStrut(5)); // Giảm khoảng cách giữa 2 date chooser
         dateChoosersPanel.add(toDatePanel);
-
         panel.add(dateChoosersPanel);
         return panel;
     }
@@ -499,181 +361,7 @@ public class QuanLyDonBan extends JPanel {
         panel.add(fieldsPanel);
         return panel;
     }
-
-    private JPanel createFilterButtonsPanel() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
-        panel.setBackground(CONTENT_COLOR);
-
-        JButton applyButton = createFilterButton("Áp dụng", true);
-        JButton resetButton = createFilterButton("Đặt lại", false);
-
-        applyButton.setPreferredSize(new Dimension(70, 38));
-        resetButton.setPreferredSize(new Dimension(70, 38));
-
-        panel.add(applyButton);
-        panel.add(resetButton);
-
-        return panel;
-    }
-
-    private JButton createFilterButton(String text, boolean isPrimary) {
-        JButton button = new JButton(text);
-        button.setFont(CONTENT_FONT);
-        
-        if (isPrimary) {
-            button.setBackground(PRIMARY_COLOR);
-            button.setForeground(Color.WHITE);
-            button.setBorder(new LineBorder(PRIMARY_COLOR, 1, true));
-        } else {
-            button.setBackground(Color.WHITE);
-            button.setForeground(Color.BLACK);
-            button.setBorder(new LineBorder(new Color(230, 230, 230), 1, true));
-        }
-        
-        button.setFocusPainted(false);
-        addButtonHoverEffect(button);
-        
-        if (isPrimary) {
-            button.addActionListener(e -> applyFilters());
-        } else {
-            button.addActionListener(e -> resetFilters());
-        }
-        
-        return button;
-    }
-
-    private JPanel createDateChooserPanel(String label, JDateChooser chooser) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0)); // Thay đổi layout
-        panel.setBackground(CONTENT_COLOR);
-        
-        JLabel dateLabel = new JLabel(label);
-        dateLabel.setFont(new Font(CONTENT_FONT.getFamily(), Font.PLAIN, 12));
-        dateLabel.setPreferredSize(new Dimension(70, 35));
-        
-        panel.add(dateLabel);
-        panel.add(chooser);
-        
-        return panel;
-    }
-
-
-    private JButton createSearchButton() {
-        JButton button = new JButton();
-        button.setIcon(new ImageIcon(getClass().getResource("/icon/search.png")));
-        button.setBorder(BorderFactory.createEmptyBorder());
-        button.setFocusPainted(false);
-        button.setBackground(Color.WHITE);
-        button.setPreferredSize(new Dimension(38, 38));
-        addButtonHoverEffect(button);
-        button.addActionListener(e -> applyFilters());
-        return button;
-    }
-
-    private JButton createActionButton(String text, String iconPath, boolean isRounded, boolean isPrimary) {
-        JButton button = new JButton(text);
-        button.setFont(CONTENT_FONT);
-        button.setIcon(new ImageIcon(getClass().getResource(iconPath)));
-        button.setFocusPainted(false);
-
-        if (isPrimary) {
-            button.setBackground(PRIMARY_COLOR);
-            button.setForeground(Color.WHITE);
-        } else {
-            button.setBackground(Color.WHITE);
-            button.setForeground(Color.BLACK);
-        }
-
-        if (isRounded) {
-            button.setBorder(new LineBorder(isPrimary ? PRIMARY_COLOR : new Color(230, 230, 230), 1, true));
-        } else {
-            button.setBorder(BorderFactory.createEmptyBorder());
-        }
-
-        button.setPreferredSize(new Dimension(130, 38));
-        addButtonHoverEffect(button);
-        
-        return button;
-    }
-
-    private JMenuItem createMenuItem(String text, java.awt.event.ActionListener listener) {
-        JMenuItem item = new JMenuItem(text);
-        item.setFont(CONTENT_FONT);
-        item.addActionListener(listener);
-        return item;
-    }
-
-    private void applyFilters() {
-        // Thực hiện lọc dữ liệu theo các điều kiện
-        tableModel.setRowCount(0); // Xóa dữ liệu hiện tại
-
-        // Lấy giá trị từ các trường lọc
-        String selectedEmployee = employeeCombo.getSelectedItem().toString();
-        Date fromDate = fromDateChooser.getDate();
-        Date toDate = toDateChooser.getDate();
-        Number fromAmount = (Number) fromAmountField.getValue();
-        Number toAmount = (Number) toAmountField.getValue();
-        String searchText = searchField.getText().toLowerCase();
-
-        // Tải lại dữ liệu mẫu (trong thực tế sẽ lấy từ database)
-        Object[][] allData = {
-            {"1", "DB001", "Nguyễn Văn An", "01/11/2023", "1,500,000 VND"},
-            {"2", "DB002", "Trần Thị Bình", "02/11/2023", "2,800,000 VND"},
-            // ... thêm dữ liệu mẫu khác
-        };
-
-        // Áp dụng bộ lọc
-        for (Object[] row : allData) {
-            boolean matchFilter = true;
-
-            // Lọc theo nhân viên
-            if (!"Tất cả".equals(selectedEmployee) && !row[2].toString().equals(selectedEmployee)) {
-                matchFilter = false;
-            }
-
-            // Lọc theo thời gian
-            // Thêm logic lọc theo thời gian ở đây
-
-            // Lọc theo khoảng tiền
-            // Thêm logic lọc theo khoảng tiền ở đây
-
-            // Lọc theo từ khóa tìm kiếm
-            if (!searchText.isEmpty()) {
-                boolean matchSearch = false;
-                for (Object cell : row) {
-                    if (cell.toString().toLowerCase().contains(searchText)) {
-                        matchSearch = true;
-                        break;
-                    }
-                }
-                if (!matchSearch) {
-                    matchFilter = false;
-                }
-            }
-
-            if (matchFilter) {
-                tableModel.addRow(row);
-            }
-        }
-
-        updateSummary();
-        JOptionPane.showMessageDialog(this,
-            "Đã áp dụng bộ lọc",
-            "Thông báo",
-            JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void resetFilters() {
-        employeeCombo.setSelectedIndex(0);
-        fromDateChooser.setDate(null);
-        toDateChooser.setDate(null);
-        fromAmountField.setValue(null);
-        toAmountField.setValue(null);
-        searchField.setText("");
-        refreshTable();
-    }
-
-    private void refreshTable() {
+     private void refreshTable() {
         tableModel.setRowCount(0);
         loadSampleData();
     }
@@ -704,219 +392,6 @@ public class QuanLyDonBan extends JPanel {
                 return null;
         }
     }
-
-    private void addButtonHoverEffect(JButton button) {
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                if (button.getBackground().equals(PRIMARY_COLOR)) {
-                    button.setBackground(PRIMARY_COLOR.darker());
-                } else {
-                    button.setBackground(HOVER_COLOR);
-                }
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                if (button.getForeground().equals(Color.WHITE)) {
-                    button.setBackground(PRIMARY_COLOR);
-                } else {
-                    button.setBackground(Color.WHITE);
-                }
-            }
-        });
-    }
-
-    private JDateChooser createDateChooser() {
-    	JDateChooser chooser = new JDateChooser();
-        chooser.setPreferredSize(new Dimension(200, 30)); // Giảm chiều cao xuống 25
-        chooser.setMaximumSize(new Dimension(200, 35));  // Thêm maxSize
-        chooser.setMinimumSize(new Dimension(200, 30));  // Thêm minSize
-        chooser.setFont(CONTENT_FONT);
-        chooser.setDateFormatString("dd/MM/yyyy");
-        chooser.setBackground(Color.WHITE);
-        
-        // Tùy chỉnh calendar button và textfield container
-        for (Component comp : chooser.getComponents()) {
-            if (comp instanceof JButton) {
-                JButton calendarButton = (JButton) comp;
-                calendarButton.setPreferredSize(new Dimension(20, 23));
-                calendarButton.setBackground(Color.WHITE);
-                calendarButton.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2));
-                
-                calendarButton.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        calendarButton.setBackground(HOVER_COLOR);
-                    }
-                    
-                    @Override
-                    public void mouseExited(MouseEvent e) {
-                        calendarButton.setBackground(Color.WHITE);
-                    }
-                });
-            }
-        }
-        
-        // Tùy chỉnh text field
-        JTextField textField = ((JTextField)chooser.getDateEditor().getUiComponent());
-        textField.setPreferredSize(new Dimension(160, 23));
-        textField.setBackground(Color.WHITE);
-        textField.setBorder(new LineBorder(new Color(230, 230, 230), 1));
-        textField.setFont(new Font(CONTENT_FONT.getFamily(), Font.PLAIN, 11)); // Giảm font size
-        
-        // Set size cho container của textfield
-        Component dateEditor = (Component) chooser.getDateEditor();
-        if (dateEditor instanceof JComponent) {
-            ((JComponent) dateEditor).setPreferredSize(new Dimension(160, 23));
-        }
-        
-        // Thêm hiệu ứng hover và focus
-        textField.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                if (textField.isEnabled()) {
-                    textField.setBorder(new LineBorder(PRIMARY_COLOR, 1));
-                }
-            }
-            
-            @Override
-            public void mouseExited(MouseEvent e) {
-                if (!textField.hasFocus()) {
-                    textField.setBorder(new LineBorder(new Color(230, 230, 230), 1));
-                }
-            }
-        });
-        
-        textField.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                textField.setBorder(new LineBorder(PRIMARY_COLOR, 1));
-            }
-            
-            @Override
-            public void focusLost(FocusEvent e) {
-                textField.setBorder(new LineBorder(new Color(230, 230, 230), 1));
-            }
-        });
-        
-        return chooser;
-
-    }
-
-    private void styleComboBox(JComboBox<?> comboBox) {
-        comboBox.setPreferredSize(new Dimension(300, 35));
-        comboBox.setMaximumSize(new Dimension(300, 35));
-        comboBox.setFont(CONTENT_FONT);
-        comboBox.setBackground(Color.WHITE);
-        
-        comboBox.setUI(new BasicComboBoxUI() {
-            @Override
-            protected JButton createArrowButton() {
-                JButton button = super.createArrowButton();
-                button.setBackground(Color.WHITE);
-                button.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-                return button;
-            }
-        });
-        
-        comboBox.setBorder(BorderFactory.createCompoundBorder(
-            new LineBorder(new Color(230, 230, 230), 1),
-            BorderFactory.createEmptyBorder(0, 5, 0, 5)
-        ));
-
-        comboBox.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value,
-                    int index, boolean isSelected, boolean cellHasFocus) {
-                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                setFont(CONTENT_FONT);
-                setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
-                
-                if (isSelected) {
-                    setBackground(HOVER_COLOR);
-                    setForeground(Color.BLACK);
-                } else {
-                    setBackground(Color.WHITE);
-                    setForeground(Color.BLACK);
-                }
-                return this;
-            }
-        });
-
-        comboBox.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                if (comboBox.isEnabled()) {
-                    comboBox.setBorder(BorderFactory.createCompoundBorder(
-                        new LineBorder(PRIMARY_COLOR, 1),
-                        BorderFactory.createEmptyBorder(0, 5, 0, 5)
-                    ));
-                }
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                if (!comboBox.hasFocus()) {
-                    comboBox.setBorder(BorderFactory.createCompoundBorder(
-                        new LineBorder(new Color(230, 230, 230), 1),
-                        BorderFactory.createEmptyBorder(0, 5, 0, 5)
-                    ));
-                }
-            }
-        });
-    }
-
-    private void styleFormattedTextField(JFormattedTextField textField) {
-        textField.setPreferredSize(new Dimension(70, 30));
-        textField.setFont(CONTENT_FONT);
-        textField.setBackground(Color.WHITE);
-        textField.setBorder(BorderFactory.createCompoundBorder(
-            new LineBorder(new Color(230, 230, 230), 1),
-            BorderFactory.createEmptyBorder(0, 8, 0, 8)
-        ));
-
-        textField.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                if (textField.isEnabled()) {
-                    textField.setBorder(BorderFactory.createCompoundBorder(
-                        new LineBorder(PRIMARY_COLOR, 1),
-                        BorderFactory.createEmptyBorder(0, 8, 0, 8)
-                    ));
-                }
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                if (!textField.hasFocus()) {
-                    textField.setBorder(BorderFactory.createCompoundBorder(
-                        new LineBorder(new Color(230, 230, 230), 1),
-                        BorderFactory.createEmptyBorder(0, 8, 0, 8)
-                    ));
-                }
-            }
-        });
-
-        textField.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                textField.setBorder(BorderFactory.createCompoundBorder(
-                    new LineBorder(PRIMARY_COLOR, 1),
-                    BorderFactory.createEmptyBorder(0, 8, 0, 8)
-                ));
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                textField.setBorder(BorderFactory.createCompoundBorder(
-                    new LineBorder(new Color(230, 230, 230), 1),
-                    BorderFactory.createEmptyBorder(0, 8, 0, 8)
-                ));
-            }
-        });
-    }
-
     // Bổ sung phương thức xử lý xuất Excel
     private void exportToExcel() {
         JFileChooser fileChooser = new JFileChooser();
@@ -1003,21 +478,87 @@ public class QuanLyDonBan extends JPanel {
         dialog.add(panel);
         dialog.setVisible(true);
     }
-
     // Thêm phương thức để xử lý double click vào dòng trong bảng
     private void addTableDoubleClickHandler() {
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    viewDetail();
+                	ChiTietPhieuBan chiTietPhieuBan = new ChiTietPhieuBan();
+                	chiTietPhieuBan.viewDetail(table);
                 }
             }
-        });
-    
-                }
-
-
-    // Các phương thức tiện ích khác giữ nguyên như trong QuanLyNhapHang
-    // Chỉ thay đổi context từ "phiếu nhập" sang "đơn bán" trong các message
+        });}
+    private void deleteRecord() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow != -1) {
+            String maDonBan = table.getValueAt(selectedRow, 1).toString();
+            
+            // Tạo custom dialog xác nhận
+            JDialog confirmDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Xác nhận xóa", true);
+            confirmDialog.setLayout(new BorderLayout());
+            confirmDialog.setBackground(Color.WHITE);
+            
+            // Panel chứa nội dung
+            JPanel contentPanel = new JPanel();
+            contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+            contentPanel.setBackground(Color.WHITE);
+            contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+            
+            // Icon cảnh báo
+            JLabel iconLabel = new JLabel(new ImageIcon(getClass().getResource("/icon/circle-alert.png")));
+            iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            // Message
+            JLabel messageLabel = new JLabel("Bạn có chắc muốn xóa đơn bán " + maDonBan + "?");
+            messageLabel.setFont(new Font(CONTENT_FONT.getFamily(), Font.BOLD, 14));
+            messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            JLabel subMessageLabel = new JLabel("Hành động này không thể hoàn tác!");
+            subMessageLabel.setFont(CONTENT_FONT);
+            subMessageLabel.setForeground(Color.RED);
+            subMessageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            // Panel chứa buttons
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+            buttonPanel.setBackground(Color.WHITE);
+            
+            JButton deleteButton = createFilter.createDetailButton("Xóa", null, true);
+            JButton cancelButton = createFilter.createDetailButton("Hủy", null, false);
+            
+            // Thêm components vào panel
+            contentPanel.add(iconLabel);
+            contentPanel.add(Box.createVerticalStrut(15));
+            contentPanel.add(messageLabel);
+            contentPanel.add(Box.createVerticalStrut(5));
+            contentPanel.add(subMessageLabel);
+            contentPanel.add(Box.createVerticalStrut(20));
+            
+            buttonPanel.add(deleteButton);
+            buttonPanel.add(cancelButton);
+            
+            // Xử lý sự kiện buttons
+            deleteButton.addActionListener(e -> {
+                tableModel.removeRow(selectedRow);
+                updateSTTColumn();
+                updateSummary();
+                confirmDialog.dispose();
+                
+                // Hiển thị thông báo thành công
+                ShowSuccessDialog showSuccessDialog = new ShowSuccessDialog();
+                showSuccessDialog.showSuccessDialog("Đã xóa đơn bán " + maDonBan + " thành công!");
+            });
+            
+            cancelButton.addActionListener(e -> confirmDialog.dispose());
+            
+            // Thêm panels vào dialog
+            confirmDialog.add(contentPanel, BorderLayout.CENTER);
+            confirmDialog.add(buttonPanel, BorderLayout.SOUTH);
+            
+            // Hiển thị dialog
+            confirmDialog.pack();
+            confirmDialog.setLocationRelativeTo(this);
+            confirmDialog.setVisible(true);
+        }
+    }
 }

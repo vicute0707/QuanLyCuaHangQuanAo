@@ -1,0 +1,270 @@
+package style;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.text.NumberFormat;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.table.DefaultTableModel;
+
+import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+import com.toedter.calendar.JDateChooser;
+
+public class CreateFilter {
+	private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
+	private static final Color CONTENT_COLOR = new Color(255, 242, 242);
+	private static final Color HOVER_COLOR = new Color(252, 231, 243);
+	private static final Font HEADER_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 14);
+	private static final Font CONTENT_FONT = new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 12);
+	private static final Font TITLE_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 16);
+
+	public JPanel createFilterField(String label, JComponent component) {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBackground(CONTENT_COLOR);
+		panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		JLabel titleLabel = new JLabel(label);
+		titleLabel.setFont(CONTENT_FONT);
+		titleLabel.setForeground(Color.BLACK);
+		titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		component.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		String tooltipText = getTooltipText(label);
+		if (tooltipText != null) {
+			component.setToolTipText(tooltipText);
+		}
+
+		panel.add(titleLabel);
+		panel.add(Box.createVerticalStrut(8));
+		panel.add(component);
+
+		return panel;
+	}
+
+	private String getTooltipText(String label) {
+		switch (label) {
+		case "Nhà cung cấp":
+			return "Chọn nhà cung cấp để lọc phiếu nhập";
+		case "Nhân viên tiếp nhận":
+			return "Chọn nhân viên tiếp nhận để lọc phiếu nhập";
+		case "Khoảng tiền (VND)":
+			return "Nhập khoảng tiền cần lọc";
+		default:
+			return null;
+		}
+	}
+
+	public JPanel createDateFilterPanel(JDateChooser fromDateChooser,JDateChooser toDateChooser) {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBackground(CONTENT_COLOR);
+		panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		JLabel titleLabel = new JLabel("Thời gian");
+		titleLabel.setFont(CONTENT_FONT);
+		titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		panel.add(titleLabel);
+		panel.add(Box.createVerticalStrut(12));
+
+		panel.add(createDateChooserPanel("Từ ngày:", fromDateChooser));
+		panel.add(Box.createVerticalStrut(12));
+		panel.add(createDateChooserPanel("Đến ngày:", toDateChooser));
+
+		return panel;
+	}
+	public JPanel createDateChooserPanel(String label, JDateChooser chooser) {
+		JPanel panel = new JPanel(new BorderLayout(10, 0));
+		panel.setBackground(CONTENT_COLOR);
+
+		JLabel dateLabel = new JLabel(label);
+		dateLabel.setFont(CONTENT_FONT);
+		dateLabel.setPreferredSize(new Dimension(65, 35));
+		panel.add(dateLabel, BorderLayout.WEST);
+		panel.add(chooser, BorderLayout.CENTER);
+
+		return panel;
+	}
+	public JLabel createFilterTitle() {
+		JLabel titleLabel = new JLabel("Lọc kết quả");
+		titleLabel.setFont(TITLE_FONT);
+		titleLabel.setForeground(PRIMARY_COLOR);
+		titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		return titleLabel;
+	}
+	public JPanel createFilterPanel() {
+		JPanel filterPanel = new JPanel();
+		filterPanel.setLayout(new BoxLayout(filterPanel, BoxLayout.Y_AXIS));
+		filterPanel.setBackground(CONTENT_COLOR);
+		filterPanel.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(0, 0, 0, 0), BorderFactory
+				.createCompoundBorder(new LineBorder(PRIMARY_COLOR, 0, true), new EmptyBorder(20, 20, 20, 20))));
+		filterPanel.setPreferredSize(new Dimension(350, 0));
+		CreateFilter createFiltera = new CreateFilter();
+		// Tiêu đề panel
+		filterPanel.add( createFiltera.createFilterTitle());
+
+		filterPanel.add(Box.createVerticalStrut(20));
+
+		// Nhà cung cấp
+		CreateFilter createFilter = new CreateFilter();
+		filterPanel.add(createFilter.createFilterField("Nhà cung cấp", supplierCombo));
+		filterPanel.add(Box.createVerticalStrut(15));
+
+		// Nhân viên
+		filterPanel.add(createFilter.createFilterField("Nhân viên tiếp nhận", employeeCombo));
+		filterPanel.add(Box.createVerticalStrut(15));
+
+		// Thời gian
+		filterPanel.add(createFilter.createDateFilterPanel(fromDateChooser,toDateChooser));
+		filterPanel.add(Box.createVerticalStrut(15));
+
+		// Khoảng tiền
+		filterPanel.add(createAmountFilterPanel());
+		filterPanel.add(Box.createVerticalStrut(25));
+		filterPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		// Buttons
+		filterPanel.add(createFilterButtonsPanel());
+
+		return filterPanel;
+	}
+	private JPanel createAmountFilterPanel(JFormattedTextField fromAmountField, JFormattedTextField toAmountField) {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBackground(CONTENT_COLOR);
+		panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		JLabel titleLabel = new JLabel("Khoảng tiền (VND)");
+		titleLabel.setFont(CONTENT_FONT);
+		titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		panel.add(titleLabel);
+		panel.add(Box.createVerticalStrut(12));
+
+		JPanel fieldsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
+		fieldsPanel.setBackground(CONTENT_COLOR);
+
+		fromAmountField.setPreferredSize(new Dimension(120, 35));
+		toAmountField.setPreferredSize(new Dimension(120, 35));
+
+		fieldsPanel.add(fromAmountField);
+		fieldsPanel.add(new JLabel("—"));
+		fieldsPanel.add(toAmountField);
+
+		panel.add(fieldsPanel);
+		return panel;
+	}
+	private JPanel createFilterButtonsPanel() {
+		JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+		panel.setBackground(CONTENT_COLOR);
+
+		JButton applyButton = createFilterButton("Áp dụng", true);
+		JButton resetButton = createFilterButton("Đặt lại", false);
+
+		applyButton.setPreferredSize(new Dimension(70, 38));
+		resetButton.setPreferredSize(new Dimension(70, 38));
+
+		panel.add(applyButton);
+		panel.add(resetButton);
+
+		return panel;
+	}
+
+	private JButton createFilterButton(String text, boolean isPrimary) {
+		JButton button = new JButton(text);
+		button.setFont(CONTENT_FONT);
+
+		if (isPrimary) {
+			button.setBackground(PRIMARY_COLOR);
+			button.setForeground(Color.WHITE);
+			button.setBorder(new LineBorder(PRIMARY_COLOR, 1, true));
+		} else {
+			button.setBackground(Color.WHITE);
+			button.setForeground(Color.BLACK);
+			button.setBorder(new LineBorder(new Color(230, 230, 230), 1, true));
+		}
+
+		button.setFocusPainted(false);
+		CreateActionButton createActionButton1 = new CreateActionButton();
+		createActionButton1.addButtonHoverEffect(button);
+
+		if (isPrimary) {
+			button.addActionListener(e -> applyFilters());
+		} else {
+			button.addActionListener(e -> resetFilters());
+		}
+
+		return button;
+	}
+	private void applyFilters() {
+	}
+	private void resetFilters(JComboBox<String> supplierCombo, JComboBox<String> employeeCombo,JFormattedTextField fromAmountField, JFormattedTextField toAmountField, JDateChooser fromDateChooser,JDateChooser toDateChooser,JTextField searchField) {
+		supplierCombo.setSelectedIndex(0);
+		employeeCombo.setSelectedIndex(0);
+		fromDateChooser.setDate(null);
+		toDateChooser.setDate(null);
+		fromAmountField.setValue(null);
+		toAmountField.setValue(null);
+		searchField.setText("");
+		refreshTable();
+	}
+	private void refreshTable(DefaultTableModel tableModel) {
+		tableModel.setRowCount(0);
+		loadSampleData(tableModel);
+	}
+	private void loadSampleData(DefaultTableModel tableModel) {
+		Object[][] data = { { "P01", "Xưởng may Đại Nam", "Nguyễn Thị Tường Vi", "01/11/2023", "15,000,000 VND" },
+				{ "P02", "Xưởng may Hoàng Gia", "Trần Văn Nam", "02/11/2023", "12,500,000 VND" },
+				{ "P03", "Công ty TNHH May Việt Tiến", "Lê Thị Hoa", "03/11/2023", "18,750,000 VND" },
+				{ "P04", "Xưởng may Đại Nam", "Nguyễn Thị Tường Vi", "05/11/2023", "22,000,000 VND" },
+				{ "P05", "Xưởng may Hoàng Gia", "Trần Văn Nam", "07/11/2023", "9,800,000 VND" },
+				{ "P05", "Xưởng may Hoàng Gia", "Trần Văn Nam", "07/11/2023", "9,800,000 VND" },
+				{ "P05", "Xưởng may Hoàng Gia", "Trần Văn Nam", "07/11/2023", "9,800,000 VND" },
+				{ "P05", "Xưởng may Hoàng Gia", "Trần Văn Nam", "07/11/2023", "9,800,000 VND" },
+				{ "P05", "Xưởng may Hoàng Gia", "Trần Văn Nam", "07/11/2023", "9,800,000 VND" },
+				{ "P05", "Xưởng may Hoàng Gia", "Trần Văn Nam", "07/11/2023", "9,800,000 VND" },
+				{ "P05", "Xưởng may Hoàng Gia", "Trần Văn Nam", "07/11/2023", "9,800,000 VND" },
+				{ "P05", "Xưởng may Hoàng Gia", "Trần Văn Nam", "07/11/2023", "9,800,000 VND" },
+				{ "P05", "Xưởng may Hoàng Gia", "Trần Văn Nam", "07/11/2023", "9,800,000 VND" },
+				{ "P05", "Xưởng may Hoàng Gia", "Trần Văn Nam", "07/11/2023", "9,800,000 VND" },
+				{ "P06", "Công ty TNHH May Việt Tiến", "Lê Thị Hoa", "10/11/2023", "16,300,000 VND" } };
+
+		for (Object[] row : data) {
+			tableModel.addRow(row);
+		}
+		updateSummary();
+	}
+	private void updateSummary() {
+		double totalAmount = 0;
+		for (int i = 0; i < tableModel.getRowCount(); i++) {
+			String amountStr = tableModel.getValueAt(i, 4).toString().replace(" VND", "").replace(",", "");
+			totalAmount += Double.parseDouble(amountStr);
+		}
+
+		NumberFormat currencyFormat = NumberFormat.getNumberInstance();
+		String formattedAmount = currencyFormat.format(totalAmount) + " VND";
+
+		totalRecordsValue.setText(String.valueOf(tableModel.getRowCount()));
+		totalAmountValue.setText(formattedAmount);
+	}
+
+
+
+
+
+}

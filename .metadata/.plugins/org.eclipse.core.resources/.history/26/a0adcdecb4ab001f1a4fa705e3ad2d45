@@ -1,0 +1,116 @@
+package dialog;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+
+public class ChiTietPhieuBan {
+	 public void viewDetail() {
+	        int selectedRow = table.getSelectedRow();
+	        if (selectedRow != -1) {
+	            String maDonBan = table.getValueAt(selectedRow, 1).toString();
+	            String nhanVien = table.getValueAt(selectedRow, 2).toString();
+	            String thoiGian = table.getValueAt(selectedRow, 3).toString();
+	            String tongTien = table.getValueAt(selectedRow, 4).toString();
+
+	            // Tạo dialog
+	            JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Chi tiết đơn bán", true);
+	            dialog.setLayout(new BorderLayout(10, 10));
+	            dialog.setBackground(Color.WHITE);
+
+	            // Panel chứa thông tin chung
+	            JPanel infoPanel = new JPanel(new GridBagLayout());
+	            infoPanel.setBackground(Color.WHITE);
+	            infoPanel.setBorder(BorderFactory.createCompoundBorder(
+	                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(230, 230, 230)),
+	                new EmptyBorder(15, 15, 15, 15)
+	            ));
+
+	            GridBagConstraints gbc = new GridBagConstraints();
+	            gbc.anchor = GridBagConstraints.WEST;
+	            gbc.insets = new Insets(5, 5, 5, 15);
+
+	            // Thêm thông tin chung
+	            addDetailField(infoPanel, "Mã đơn bán:", maDonBan, gbc, 0);
+	            addDetailField(infoPanel, "Nhân viên:", nhanVien, gbc, 1);
+	            addDetailField(infoPanel, "Thời gian:", thoiGian, gbc, 2);
+	            addDetailField(infoPanel, "Tổng tiền:", tongTien, gbc, 3);
+
+	            // Tạo bảng chi tiết sản phẩm
+	            String[] columns = {"STT", "Mã SP", "Tên sản phẩm", "Màu sắc", "Kích cỡ", "Đơn giá", "Số lượng", "Thành tiền"};
+	            DefaultTableModel detailModel = new DefaultTableModel(columns, 0) {
+	                @Override
+	                public boolean isCellEditable(int row, int column) {
+	                    return false;
+	                }
+	            };
+
+	            JTable detailTable = new JTable(detailModel);
+	            setupDetailTable(detailTable);
+
+	            // Thêm dữ liệu mẫu vào bảng chi tiết
+	            Object[][] sampleData = {
+	                {"1", "SP001", "Váy hoa", "Đỏ", "M", "350,000", "2", "700,000"},
+	                {"2", "SP002", "Áo sơ mi", "Trắng", "L", "280,000", "1", "280,000"},
+	                {"3", "SP003", "Quần jean", "Xanh", "29", "520,000", "1", "520,000"}
+	            };
+
+	            for (Object[] row : sampleData) {
+	                detailModel.addRow(row);
+	            }
+
+	            JScrollPane scrollPane = new JScrollPane(detailTable);
+	            scrollPane.setBorder(new EmptyBorder(10, 15, 10, 15));
+
+	            // Panel chứa nút
+	            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+	            buttonPanel.setBackground(Color.WHITE);
+	            buttonPanel.setBorder(new EmptyBorder(0, 15, 15, 15));
+
+	            JButton printButton = createFilter.createFilterButton("In đơn bán", true);
+	            JButton closeButton = createFilter.createDetailButton("Đóng", null, false);
+
+	            buttonPanel.add(printButton);
+	            buttonPanel.add(Box.createHorizontalStrut(10));
+	            buttonPanel.add(closeButton);
+
+	            // Thêm các panel vào dialog
+	            dialog.add(infoPanel, BorderLayout.NORTH);
+	            dialog.add(scrollPane, BorderLayout.CENTER);
+	            dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+	            // Xử lý sự kiện nút
+	            printButton.addActionListener(e -> {
+	                JOptionPane.showMessageDialog(dialog, 
+	                    "Đang in đơn bán " + maDonBan, 
+	                    "Thông báo", 
+	                    JOptionPane.INFORMATION_MESSAGE);
+	            });
+
+	            closeButton.addActionListener(e -> dialog.dispose());
+
+	            // Hiển thị dialog
+	            dialog.setSize(900, 600);
+	            dialog.setLocationRelativeTo(null);
+	            dialog.setVisible(true);
+	        }
+	    }
+
+
+}

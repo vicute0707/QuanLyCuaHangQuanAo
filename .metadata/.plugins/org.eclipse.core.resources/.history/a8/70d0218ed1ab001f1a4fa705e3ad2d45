@@ -1,0 +1,81 @@
+package service;
+
+import java.util.*;
+
+public class PermissionManager {
+	  private static PermissionManager instance;
+	    private Map<String, Set<String>> rolePermissions;
+	    
+	    private PermissionManager() {
+	        rolePermissions = new HashMap<>();
+	        initializeDefaultPermissions();
+	    }
+	    
+	    public static PermissionManager getInstance() {
+	        if (instance == null) {
+	            instance = new PermissionManager();
+	        }
+	        return instance;
+	    }
+	    
+	    private void initializeDefaultPermissions() {
+	        // Admin permissions
+	        Set<String> adminPermissions = new HashSet<>(Arrays.asList(
+	            "VIEW_STAFF", "ADD_STAFF", "EDIT_STAFF", "DELETE_STAFF",
+	            "VIEW_PERMISSIONS", "MANAGE_PERMISSIONS",
+	            "VIEW_ACCOUNTS", "MANAGE_ACCOUNTS",
+	            "VIEW_REPORTS", "MANAGE_SYSTEM"
+	        ));
+	        rolePermissions.put("ADMIN", adminPermissions);
+	        
+	        // Manager permissions
+	        Set<String> managerPermissions = new HashSet<>(Arrays.asList(
+	            "VIEW_STAFF", "ADD_STAFF", "EDIT_STAFF",
+	            "VIEW_PERMISSIONS",
+	            "VIEW_ACCOUNTS",
+	            "VIEW_REPORTS"
+	        ));
+	        rolePermissions.put("MANAGER", managerPermissions);
+	        
+	        // Staff permissions
+	        Set<String> staffPermissions = new HashSet<>(Arrays.asList(
+	            "VIEW_STAFF",
+	            "VIEW_ACCOUNTS"
+	        ));
+	        rolePermissions.put("STAFF", staffPermissions);
+	    }
+	    
+	    public boolean hasPermission(User user, String permission) {
+	        if (user == null || permission == null) return false;
+	        
+	        String userRole = user.getRole();
+	        if (userRole == null) return false;
+	        
+	        Set<String> permissions = rolePermissions.get(userRole.toUpperCase());
+	        return permissions != null && permissions.contains(permission);
+	    }
+	    
+	    public boolean addPermissionToRole(String role, String permission) {
+	        if (role == null || permission == null) return false;
+	        
+	        rolePermissions.computeIfAbsent(role.toUpperCase(), k -> new HashSet<>())
+	                      .add(permission);
+	        return true;
+	    }
+	    
+	    public boolean removePermissionFromRole(String role, String permission) {
+	        if (role == null || permission == null) return false;
+	        
+	        Set<String> permissions = rolePermissions.get(role.toUpperCase());
+	        if (permissions != null) {
+	            permissions.remove(permission);
+	            return true;
+	        }
+	        return false;
+	    }
+	    
+	    public Set<String> getRolePermissions(String role) {
+	        return new HashSet<>(rolePermissions.getOrDefault(role.toUpperCase(), new HashSet<>()));
+	    }
+
+}

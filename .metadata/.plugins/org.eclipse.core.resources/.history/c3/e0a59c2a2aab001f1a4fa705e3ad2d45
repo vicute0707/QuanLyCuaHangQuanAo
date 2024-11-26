@@ -1,0 +1,92 @@
+package export;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import javax.swing.JTable;
+import javax.swing.table.TableModel;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import java.awt.Color;
+import org.apache.poi.ss.util.CellRangeAddress;
+
+
+public class ExcelExporterNCC {
+	private static final String[] HEADERS = { "Mã NCC", "Tên nhà cung cấp", "Địa chỉ", "Email", "Số điện thoại" };
+
+	public void exportToExcel(JTable table, String filePath) throws IOException {
+		TableModel model = table.getModel();
+
+		try (Workbook workbook = new XSSFWorkbook()) {
+			Sheet sheet = workbook.createSheet("Danh sách nhà cung cấp");
+
+			// Tạo font và style cho header
+			Font headerFont = workbook.createFont();
+			headerFont.setBold(true);
+			headerFont.setFontHeightInPoints((short) 12);
+
+			CellStyle headerStyle = workbook.createCellStyle();
+			headerStyle.setFont(headerFont);
+			headerStyle.setAlignment(HorizontalAlignment.CENTER);
+			headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+			headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+			headerStyle.setBorderBottom(BorderStyle.THIN);
+			headerStyle.setBorderTop(BorderStyle.THIN);
+			headerStyle.setBorderLeft(BorderStyle.THIN);
+			headerStyle.setBorderRight(BorderStyle.THIN);
+
+			// Tạo tiêu đề
+			Row titleRow = sheet.createRow(0);
+			Cell titleCell = titleRow.createCell(0);
+			titleCell.setCellValue("DANH SÁCH NHÀ CUNG CẤP");
+			CellStyle titleStyle = workbook.createCellStyle();
+			Font titleFont = workbook.createFont();
+			titleFont.setBold(true);
+			titleFont.setFontHeightInPoints((short) 14);
+			titleStyle.setFont(titleFont);
+			titleStyle.setAlignment(HorizontalAlignment.CENTER);
+			titleCell.setCellStyle(titleStyle);
+			sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
+
+			// Tạo header
+			Row headerRow = sheet.createRow(2);
+			for (int i = 0; i < HEADERS.length; i++) {
+				Cell cell = headerRow.createCell(i);
+				cell.setCellValue(HEADERS[i]);
+				cell.setCellStyle(headerStyle);
+			}
+
+			// Style cho dữ liệu
+			CellStyle dataStyle = workbook.createCellStyle();
+			dataStyle.setBorderBottom(BorderStyle.THIN);
+			dataStyle.setBorderTop(BorderStyle.THIN);
+			dataStyle.setBorderLeft(BorderStyle.THIN);
+			dataStyle.setBorderRight(BorderStyle.THIN);
+
+			// Thêm dữ liệu
+			for (int i = 0; i < model.getRowCount(); i++) {
+				Row row = sheet.createRow(i + 3);
+				for (int j = 0; j < model.getColumnCount(); j++) {
+					Cell cell = row.createCell(j);
+					cell.setCellValue(String.valueOf(model.getValueAt(i, j)));
+					cell.setCellStyle(dataStyle);
+				}
+			}
+
+			// Tự động điều chỉnh độ rộng cột
+			for (int i = 0; i < HEADERS.length; i++) {
+				sheet.autoSizeColumn(i);
+			}
+
+			// Thêm footer
+			int lastRow = model.getRowCount() + 4;
+			Row footerRow = sheet.createRow(lastRow);
+			Cell footerCell = footerRow.createCell(0);
+			footerCell.setCellValue("Tổng số nhà cung cấp: " + model.getRowCount());
+
+			// Lưu file
+			try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
+				workbook.write(fileOut);
+			}
+		}
+	}
+}

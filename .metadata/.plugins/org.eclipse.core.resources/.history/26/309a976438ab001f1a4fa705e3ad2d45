@@ -1,0 +1,47 @@
+package style;
+
+import java.awt.Color;
+
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.LookAndFeel;
+import javax.swing.border.LineBorder;
+import javax.swing.plaf.basic.BasicComboBoxEditor;
+import javax.swing.plaf.basic.BasicComboPopup;
+import javax.swing.plaf.basic.ComboPopup;
+
+public class BasicComboBoxUI extends BasicComboBoxEditor{
+	 @Override
+     protected void installDefaults() {
+         super.installDefaults();
+         LookAndFeel.installProperty(comboBox, "opaque", false);
+     }
+     
+     @Override
+     protected JButton createArrowButton() {
+         JButton button = new JButton();
+         button.setBorder(BorderFactory.createEmptyBorder());
+         button.setContentAreaFilled(false);
+         button.setIcon(new ImageIcon(getClass().getResource("/icon/arrow-down.png")));
+         return button;
+     }
+     
+     @Override
+     protected ComboPopup createPopup() {
+         return new BasicComboPopup(comboBox) {
+             @Override
+             protected void configurePopup() {
+                 super.configurePopup();
+                 setBorder(new LineBorder(Color.LIGHT_GRAY, 1));
+             }
+             
+             @Override
+             protected void configureList() {
+                 super.configureList();
+                 list.setSelectionBackground(HOVER_COLOR);
+                 list.setSelectionForeground(Color.BLACK);
+             }
+         };
+     }
+}

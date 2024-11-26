@@ -1,0 +1,12 @@
+package table;
+
+import javax.swing.JPanel;
+import javax.swing.*;
+
+public class TBL_NCC extends JPanel{
+	public TBL_NCC() {
+		// TODO Auto-generated constructor stub
+		
+	}
+
+}

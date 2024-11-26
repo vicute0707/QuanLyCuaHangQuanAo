@@ -1,0 +1,7 @@
+package style;
+
+import javax.swing.plaf.basic.BasicComboBoxEditor;
+
+public class BasicComboBoxUI extends BasicComboBoxEditor{
+	
+}

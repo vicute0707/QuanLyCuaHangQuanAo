@@ -1,0 +1,43 @@
+package entity;
+
+public class PermissionGroup {
+	private String groupID;
+	private String groupName;
+	private List<Permission> permissions;
+
+	public PermissionGroup() {
+		permissions = new ArrayList<>();
+	}
+
+	// Getters and setters
+	public String getGroupID() {
+		return groupID;
+	}
+
+	public void setGroupID(String groupID) {
+		this.groupID = groupID;
+	}
+
+	public String getGroupName() {
+		return groupName;
+	}
+
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
+	}
+
+	public List<Permission> getPermissions() {
+		return permissions;
+	}
+
+	public void setPermissions(List<Permission> permissions) {
+		this.permissions = permissions;
+	}
+
+	public void addPermission(Permission permission) {
+		if (!permissions.contains(permission)) {
+			permissions.add(permission);
+		}
+	}
+
+}

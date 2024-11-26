@@ -1,0 +1,117 @@
+package table;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+
+import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+
+import dialog.EditSanPham;
+import gui.Form_SanPham;
+import style.CustomScrollBarUI;
+
+public class TBL_SP {
+	   
+    private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
+    private static final Color CONTENT_COLOR = new Color(255, 192, 203);
+    private static final Color HOVER_COLOR = new Color(252, 231, 243);
+    private static final Font HEADER_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 12);
+    private static final Font CONTENT_FONT = new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 12);
+    private int selectedRow = -1; // Thêm biến để lưu hàng được chọn
+
+    private JTable table;
+    private DefaultTableModel tableModel;
+    private JTextField searchField;
+	 public JPanel createTablePanel(JTable table, DefaultTableModel tableModel) {
+	        JPanel tablePanel = new JPanel(new BorderLayout(0, 15));
+	        tablePanel.setBackground(Color.WHITE);
+	        tablePanel.setBorder(new EmptyBorder(10, 0, 0, 0));
+	        
+	        String[] columns = {
+	            "Mã SP", "Tên sản phẩm", "Danh mục", "Số lượng tồn", 
+	            "Giá nhập", "Giá bán", "Thương hiệu", "Tình trạng"
+	        };
+	        tableModel = new DefaultTableModel(columns, 0) {
+	            @Override
+	            public boolean isCellEditable(int row, int column) {
+	                return false;
+	            }
+	        };
+	        
+	        table = new JTable(tableModel);
+	        table.setFont(CONTENT_FONT);
+	        table.setRowHeight(32);
+	        table.setGridColor(new Color(245, 245, 245));
+	        table.setSelectionBackground(HOVER_COLOR);
+	        table.setSelectionForeground(Color.BLACK);
+	        table.setIntercellSpacing(new Dimension(10, 10));
+	        
+	        // Set preferred size for auto scrolling
+	        table.setPreferredScrollableViewportSize(new Dimension(800, 400));
+	        table.setFillsViewportHeight(true);
+	        
+	        table.addMouseListener(new MouseAdapter() {
+	            @Override
+	            public void mouseClicked(MouseEvent e) {
+	                // Get the selected row index
+	                selectedRow = table.getSelectedRow();
+	                if (selectedRow != -1) {
+	                    if (e.getClickCount() == 2) {
+	                        // Create and show edit dialog
+	                        EditSanPham dialog = new EditSanPham();
+	                        dialog.setVisible(true);
+	                        
+	                    }
+	                }
+	            }
+	        });
+	        
+	        // Setup table header
+	        JTableHeader header = table.getTableHeader();
+	        header.setFont(HEADER_FONT);
+	        header.setBackground(Color.WHITE);
+	        header.setForeground(Color.BLACK);
+	        header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40));
+	        header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(230, 230, 230)));
+	        
+	        // Add sample data
+	        addSampleData();
+	        
+	        // Create scroll pane with custom ScrollBarUI
+	        JScrollPane scrollPane = new JScrollPane(table);
+	        scrollPane.getViewport().setBackground(Color.WHITE);
+	        scrollPane.setBackground(Color.white);
+	        scrollPane.setBorder(BorderFactory.createCompoundBorder(
+	            new EmptyBorder(10, 10, 10, 10),
+	            BorderFactory.createLineBorder(new Color(245, 245, 245))
+	        ));
+	        
+	        // Customize scroll bars
+	        scrollPane.getVerticalScrollBar().setUI(new CustomScrollBarUI());
+	        scrollPane.getHorizontalScrollBar().setUI(new CustomScrollBarUI());
+	        
+	        // Set scroll bar policies
+	        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+	        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+	        
+	        tablePanel.add(scrollPane, BorderLayout.CENTER);
+	       
+	        return tablePanel;
+
+}
+}
+	 

@@ -1,0 +1,38 @@
+package style;
+
+import java.awt.Color;
+import java.awt.Dimension;
+
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.border.LineBorder;
+
+public class CreateActionButton {
+    private JButton createActionButton(String text, String iconPath, boolean isRounded, boolean isPrimary) {
+        JButton button = new JButton(text);
+        button.setFont(CONTENT_FONT);
+        button.setIcon(new ImageIcon(getClass().getResource(iconPath)));
+        button.setFocusPainted(false);
+
+        if (isPrimary) {
+            button.setBackground(PRIMARY_COLOR);
+            button.setForeground(Color.WHITE);
+        } else {
+            button.setBackground(Color.WHITE);
+            button.setForeground(Color.BLACK);
+        }
+
+        if (isRounded) {
+            button.setBorder(new LineBorder(isPrimary ? PRIMARY_COLOR : new Color(230, 230, 230), 1, true));
+        } else {
+            button.setBorder(BorderFactory.createEmptyBorder());
+        }
+
+        button.setPreferredSize(new Dimension(130, 38));
+        addButtonHoverEffect(button);
+        
+        return button;
+    }
+
+}

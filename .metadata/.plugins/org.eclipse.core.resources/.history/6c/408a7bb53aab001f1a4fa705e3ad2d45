@@ -1,0 +1,165 @@
+package table;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+
+import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+
+import dialog.EditSanPham;
+import gui.Form_SanPham;
+import style.CustomScrollBarUI;
+
+public class TBL_SP {
+
+	private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
+	private static final Color CONTENT_COLOR = new Color(255, 192, 203);
+	private static final Color HOVER_COLOR = new Color(252, 231, 243);
+	private static final Font HEADER_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 12);
+	private static final Font CONTENT_FONT = new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 12);
+	private int selectedRow = -1; // Thêm biến để lưu hàng được chọn
+
+	private JTable table;
+	private DefaultTableModel tableModel;
+	private JTextField searchField;
+
+	public JPanel createTablePanel(JTable table, DefaultTableModel tableModel) {
+		JPanel tablePanel = new JPanel(new BorderLayout(0, 15));
+		tablePanel.setBackground(Color.WHITE);
+		tablePanel.setBorder(new EmptyBorder(10, 0, 0, 0));
+
+		String[] columns = { "Mã SP", "Tên sản phẩm", "Danh mục", "Số lượng tồn", "Giá nhập", "Giá bán", "Thương hiệu",
+				"Tình trạng" };
+		tableModel = new DefaultTableModel(columns, 0) {
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
+
+		table = new JTable(tableModel);
+		table.setFont(CONTENT_FONT);
+		table.setRowHeight(32);
+		table.setGridColor(new Color(245, 245, 245));
+		table.setSelectionBackground(HOVER_COLOR);
+		table.setSelectionForeground(Color.BLACK);
+		table.setIntercellSpacing(new Dimension(10, 10));
+
+		// Set preferred size for auto scrolling
+		table.setPreferredScrollableViewportSize(new Dimension(800, 400));
+		table.setFillsViewportHeight(true);
+
+		// Setup table header
+		JTableHeader header = table.getTableHeader();
+		header.setFont(HEADER_FONT);
+		header.setBackground(Color.WHITE);
+		header.setForeground(Color.BLACK);
+		header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40));
+		header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(230, 230, 230)));
+
+		// Add sample data
+		addSampleData();
+
+		// Create scroll pane with custom ScrollBarUI
+		JScrollPane scrollPane = new JScrollPane(table);
+		scrollPane.getViewport().setBackground(Color.WHITE);
+		scrollPane.setBackground(Color.white);
+		scrollPane.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(10, 10, 10, 10),
+				BorderFactory.createLineBorder(new Color(245, 245, 245))));
+
+		// Customize scroll bars
+		scrollPane.getVerticalScrollBar().setUI(new CustomScrollBarUI());
+		scrollPane.getHorizontalScrollBar().setUI(new CustomScrollBarUI());
+
+		// Set scroll bar policies
+		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+		tablePanel.add(scrollPane, BorderLayout.CENTER);
+
+		return tablePanel;
+
+	}
+
+	private void addSampleData() {
+		Object[][] data = {
+				{ "SP001", "Váy ngắn kẻ caro", "Váy", 36, "200,000 vnd", "250,000 vnd", "VietNam", "Còn hàng" },
+				{ "SP002", "Quần dài", "Quần", 3, "200,000 vnd", "250,000 vnd", "Shien", "Sắp hết" },
+				{ "SP003", "Áo thun trơn", "Áo", 0, "120,000 vnd", "199,000 vnd", "T-Lab", "Hết hàng" },
+				{ "SP004", "Áo sơ mi", "Áo", 15, "180,000 vnd", "250,000 vnd", "Local Brand", "Còn hàng" },
+				{ "SP005", "Quần jean", "Quần", 20, "300,000 vnd", "450,000 vnd", "Levi's", "Còn hàng" },
+				{ "SP006", "Váy dài", "Váy", 8, "250,000 vnd", "350,000 vnd", "Zara", "Sắp hết" },
+				{ "SP007", "Áo khoác", "Áo", 12, "400,000 vnd", "600,000 vnd", "H&M", "Còn hàng" },
+				{ "SP008", "Quần short", "Quần", 25, "150,000 vnd", "220,000 vnd", "Uniqlo", "Còn hàng" },
+				{ "SP009", "Áo len", "Áo", 5, "280,000 vnd", "380,000 vnd", "Mango", "Sắp hết" },
+				{ "SP010", "Váy hoa", "Váy", 0, "220,000 vnd", "320,000 vnd", "F21", "Hết hàng" },
+				{ "SP010", "Váy hoa", "Váy", 0, "220,000 vnd", "320,000 vnd", "F21", "Hết hàng" },
+				{ "SP010", "Váy hoa", "Váy", 0, "220,000 vnd", "320,000 vnd", "F21", "Hết hàng" },
+				{ "SP010", "Váy hoa", "Váy", 0, "220,000 vnd", "320,000 vnd", "F21", "Hết hàng" }, };
+
+		for (Object[] row : data) {
+			tableModel.addRow(row);
+		}
+
+		// Set custom cell renderer for status column
+		table.getColumnModel().getColumn(7).setCellRenderer((table, value, isSelected, hasFocus, row, column) -> {
+			JLabel label = new JLabel(value.toString());
+			label.setOpaque(true);
+			label.setHorizontalAlignment(JLabel.CENTER);
+			label.setFont(CONTENT_FONT);
+			label.setBorder(new EmptyBorder(0, 5, 0, 5)); // Thêm padding cho cell
+
+			switch (value.toString()) {
+			case "Còn hàng":
+				label.setForeground(new Color(0, 128, 0));
+				break;
+			case "Sắp hết":
+				label.setForeground(new Color(255, 140, 0));
+				break;
+			case "Hết hàng":
+				label.setForeground(Color.RED);
+				break;
+			}
+
+			if (isSelected) {
+				label.setBackground(HOVER_COLOR);
+			} else {
+				label.setBackground(table.getBackground());
+			}
+
+			return label;
+		});
+		
+}
+
+	public JTable getTable() {
+		return table;
+	}
+
+	public void setTable(JTable table) {
+		this.table = table;
+	}
+
+	public DefaultTableModel getTableModel() {
+		return tableModel;
+	}
+
+	public void setTableModel(DefaultTableModel tableModel) {
+		this.tableModel = tableModel;
+	}
+}

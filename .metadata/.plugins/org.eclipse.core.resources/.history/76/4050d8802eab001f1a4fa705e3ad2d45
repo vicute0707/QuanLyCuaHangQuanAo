@@ -1,0 +1,316 @@
+package gui;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.plaf.basic.BasicScrollBarUI;
+import javax.swing.table.*;
+import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+
+import component.ImagePanel;
+import style.CreateRoundedButton;
+import style.CustomScrollBarUI;
+import table.TBL_DM;
+
+public class Form_DanhMuc extends JPanel {
+    private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
+    private static final Color CONTENT_COLOR = new Color(255, 192, 203);
+    private static final Color HOVER_COLOR = new Color(252, 231, 243);
+    private static final Font HEADER_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 12);
+    private static final Font CONTENT_FONT = new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 12);
+    private static final Font TITLE_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 14);
+
+    private int selectedRow = -1;
+    private JTable table;
+    private DefaultTableModel tableModel;
+    private JTextField searchField;
+    private JPanel rightPanel;
+    private JPanel productsPanel;
+
+    public Form_DanhMuc() {
+        initComponents();
+    }
+
+    private void initComponents() {
+        setLayout(new BorderLayout(10, 0));
+        setBackground(Color.WHITE);
+        setBorder(new EmptyBorder(30, 30, 30, 30));
+
+        // Tạo panel chính chứa table
+        JPanel mainPanel = new JPanel(new BorderLayout(20, 0));
+        mainPanel.setBackground(Color.WHITE);
+        mainPanel.setPreferredSize(new Dimension(getWidth() * 7/10, getHeight()));
+
+        // Panel bên trái chứa danh mục
+        JPanel leftPanel = new JPanel(new BorderLayout(0, 20));
+        leftPanel.setBackground(Color.WHITE);
+        	TBL_DM tableDM = new TBL_DM();
+        leftPanel.add(createTopPanel(), BorderLayout.NORTH);
+        leftPanel.add(tableDM.createTablePanel(), BorderLayout.CENTER);
+        mainPanel.add(leftPanel, BorderLayout.CENTER);
+
+        // Panel bên phải để hiển thị sản phẩm
+        rightPanel = new JPanel(new BorderLayout());
+        rightPanel.setBackground(Color.WHITE);
+        rightPanel.setBorder(BorderFactory.createLineBorder(new Color(245, 245, 245)));
+        rightPanel.setPreferredSize(new Dimension(320, getHeight()));
+
+        // Panel chứa tiêu đề
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(Color.WHITE);
+        titlePanel.setBorder(new EmptyBorder(15, 20, 15, 20));
+        JLabel titleLabel = new JLabel("Danh sách sản phẩm");
+        titleLabel.setFont(TITLE_FONT);
+        titlePanel.add(titleLabel, BorderLayout.WEST);
+
+        // Panel chứa danh sách sản phẩm
+        productsPanel = new JPanel();
+        productsPanel.setBackground(Color.WHITE);
+        productsPanel.setLayout(new BoxLayout(productsPanel, BoxLayout.Y_AXIS));
+        productsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JScrollPane scrollPane = new JScrollPane(productsPanel);
+        scrollPane.setBorder(null);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        CustomScrollBarUI customScrollBarUI = new CustomScrollBarUI();
+        scrollPane.getVerticalScrollBar().setUI(customScrollBarUI);
+
+        rightPanel.add(titlePanel, BorderLayout.NORTH);
+        rightPanel.add(scrollPane, BorderLayout.CENTER);
+
+        add(mainPanel, BorderLayout.CENTER);
+        add(rightPanel, BorderLayout.EAST);
+        // Thêm sự kiện click để hiển thị sản phẩm
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                selectedRow = table.getSelectedRow();
+                if (selectedRow != -1) {
+                    String category = (String) table.getValueAt(selectedRow, 1);
+                    updateProductsPanel(category);
+                }
+            }
+        });
+    }
+    private JPanel createProductCard(String name, int quantity, String imagePath) {
+        JPanel card = new JPanel(new BorderLayout(10, 10));
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(245, 245, 245), 1, true),
+            new EmptyBorder(10, 10, 10, 10)
+        ));
+        card.setMaximumSize(new Dimension(260, 100));
+        card.setPreferredSize(new Dimension(260, 100));
+
+        // Image panel
+        ImagePanel imagePanel = new ImagePanel(imagePath, 80, 80);
+        imagePanel.setBackground(Color.WHITE);
+        JPanel imageContainer = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        imageContainer.setBackground(Color.WHITE);
+        imageContainer.add(imagePanel);
+
+        // Info panel
+        JPanel infoPanel = new JPanel();
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+        infoPanel.setBackground(Color.WHITE);
+        
+        JLabel nameLabel = new JLabel(name);
+        nameLabel.setFont(new Font(FlatRobotoFont.FAMILY, Font.BOLD, 13));
+        nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel quantityLabel = new JLabel("Số lượng: " + quantity);
+        quantityLabel.setFont(CONTENT_FONT);
+        quantityLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        infoPanel.setBorder(new EmptyBorder(5, 10, 5, 5));
+        infoPanel.add(nameLabel);
+        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        infoPanel.add(quantityLabel);
+
+        card.add(imageContainer, BorderLayout.WEST);
+        card.add(infoPanel, BorderLayout.CENTER);
+
+        // Hover effect
+        MouseAdapter hoverAdapter = new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                card.setBackground(HOVER_COLOR);
+                imageContainer.setBackground(HOVER_COLOR);
+                infoPanel.setBackground(HOVER_COLOR);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                card.setBackground(Color.WHITE);
+                imageContainer.setBackground(Color.WHITE);
+                infoPanel.setBackground(Color.WHITE);
+            }
+        };
+        
+        card.addMouseListener(hoverAdapter);
+        imageContainer.addMouseListener(hoverAdapter);
+        infoPanel.addMouseListener(hoverAdapter);
+
+        // Wrapper panel
+        JPanel wrapperPanel = new JPanel();
+        wrapperPanel.setLayout(new BoxLayout(wrapperPanel, BoxLayout.Y_AXIS));
+        wrapperPanel.setBackground(Color.WHITE);
+        wrapperPanel.add(card);
+        wrapperPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+
+        return wrapperPanel;
+    }
+
+    private JPanel createTopPanel() {
+    	CreateRoundedButton stylebtn = new CreateRoundedButton();
+        JPanel topPanel = new JPanel(new BorderLayout(20, 0));
+        topPanel.setBackground(Color.WHITE);
+        
+        // Search panel
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
+        searchPanel.setBackground(Color.WHITE);
+        
+        searchField = new JTextField();
+        searchField.setPreferredSize(new Dimension(200, 35));
+        searchField.setFont(CONTENT_FONT);
+        
+        JButton searchButton = stylebtn.createRoundedButton("", "/icon/search.png", false);
+        
+        searchPanel.add(searchField);
+        searchPanel.add(searchButton);
+        
+        // Actions panel
+        JPanel actionsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        actionsPanel.setBackground(Color.WHITE);
+        
+        JButton addButton = stylebtn.createRoundedButton("Thêm danh mục", "/icon/circle-plus.png", true);
+        addButton.setBackground(PRIMARY_COLOR);
+        addButton.setForeground(Color.WHITE);
+        addButton.setPreferredSize(new Dimension(160, 38));
+        
+        addButton.addActionListener(e -> {
+            String newCategory = JOptionPane.showInputDialog(Form_DanhMuc.this, 
+                "Nhập tên danh mục mới:", 
+                "Thêm danh mục", 
+                JOptionPane.PLAIN_MESSAGE);
+                
+            if (newCategory != null && !newCategory.trim().isEmpty()) {
+                Object[] rowData = {
+                    "DM" + String.format("%03d", tableModel.getRowCount() + 1),
+                    newCategory,
+                    ""
+                };
+                tableModel.addRow(rowData);
+            }
+        });
+
+        JButton editButton = stylebtn.createRoundedButton("Edit", "/icon/pencil.png", true);
+        editButton.addActionListener(e -> {
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(Form_DanhMuc.this,
+                    "Vui lòng chọn một danh mục để chỉnh sửa.",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+            } else {
+                String currentName = (String) tableModel.getValueAt(selectedRow, 1);
+                String newName = JOptionPane.showInputDialog(Form_DanhMuc.this,
+                    "Chỉnh sửa tên danh mục:",
+                    currentName);
+                
+                if (newName != null && !newName.trim().isEmpty()) {
+                    tableModel.setValueAt(newName, selectedRow, 1);
+                }
+            }
+        });
+
+        JButton deleteButton = stylebtn.createRoundedButton("Xóa", "/icon/trash.png", true);
+        deleteButton.addActionListener(e -> {
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(Form_DanhMuc.this,
+                    "Vui lòng chọn một danh mục để xóa.",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+            } else {
+                int confirm = JOptionPane.showConfirmDialog(Form_DanhMuc.this,
+                    "Bạn có chắc muốn xóa danh mục này?",
+                    "Xác nhận xóa",
+                    JOptionPane.YES_NO_OPTION);
+                    
+                if (confirm == JOptionPane.YES_OPTION) {
+                    tableModel.removeRow(selectedRow);
+                    selectedRow = -1;
+                    productsPanel.removeAll();
+                    productsPanel.revalidate();
+                    productsPanel.repaint();
+                }
+            }
+        });
+        
+        actionsPanel.add(addButton);
+        actionsPanel.add(editButton);
+        actionsPanel.add(deleteButton);
+        
+        topPanel.add(searchPanel, BorderLayout.WEST);
+        topPanel.add(actionsPanel, BorderLayout.EAST);
+        
+        return topPanel;
+    }
+
+
+    
+    private void updateProductsPanel(String category) {
+        productsPanel.removeAll();
+        
+        // Thêm sản phẩm mẫu dựa trên danh mục
+        if (category.equals("Váy")) {
+            productsPanel.add(createProductCard("Váy caro cuti", 36, "/img/vay1.png"));
+            productsPanel.add(createProductCard("Váy công sở", 25, "/img/vay1.png"));
+            productsPanel.add(createProductCard("Váy dự tiệc", 15, "/img/vay1.png"));
+            productsPanel.add(createProductCard("Váy maxi", 20, "/img/vay.png"));
+            productsPanel.add(createProductCard("Váy body", 30, "/img/vay.png"));
+        } else if (category.equals("Áo")) {
+            productsPanel.add(createProductCard("Áo thun basic", 50, "/img/ao.png"));
+            productsPanel.add(createProductCard("Áo sơ mi trắng", 30, "/img/ao.png"));
+            productsPanel.add(createProductCard("Áo khoác jean", 20, "/img/ao.png"));
+            productsPanel.add(createProductCard("Áo len", 25, "/img/ao.png"));
+        } else if (category.equals("Quần")) {
+            productsPanel.add(createProductCard("Quần jean slim", 45, "/img/quan.png"));
+            productsPanel.add(createProductCard("Quần tây", 28, "/img/quan.png"));
+            productsPanel.add(createProductCard("Quần short", 33, "/img/quan.png"));
+        }
+        
+        productsPanel.revalidate();
+        productsPanel.repaint();
+    }
+   
+
+
+
+
+    // Các phương thức getter và utility
+    public JTable getTable() {
+        return table;
+    }
+
+    public DefaultTableModel getTableModel() {
+        return tableModel;
+    }
+
+    public int getSelectedRow() {
+        return selectedRow;
+    }
+
+    // Phương thức refresh
+    public void refreshProductsPanel() {
+        if (selectedRow != -1) {
+            String category = (String) table.getValueAt(selectedRow, 1);
+            updateProductsPanel(category);
+        }
+    }
+
+
+
+
+}

@@ -1,0 +1,21 @@
+package style;
+
+import java.awt.Color;
+import java.awt.Dimension;
+
+import javax.swing.BorderFactory;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+
+public class StyleinTab {
+    public void styleTextField(JTextField field) {
+        field.setPreferredSize(new Dimension(200, 38));
+        field.setFont(CONTENT_FONT);
+        field.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(240, 240, 240)),
+            new EmptyBorder(5, 10, 5, 10)
+        ));
+    }
+
+}

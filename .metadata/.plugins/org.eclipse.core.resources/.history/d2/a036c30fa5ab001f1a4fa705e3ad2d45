@@ -1,0 +1,50 @@
+package style;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JButton;
+import javax.swing.border.LineBorder;
+
+public class StyleButton {
+	  public void styleButton(JButton button, boolean isPrimary) {
+	        button.setFont(CONTENT_FONT);
+	        button.setPreferredSize(new Dimension(100, 35));
+	        
+	        if (isPrimary) {
+	            button.setBackground(PRIMARY_COLOR);
+	            button.setForeground(Color.WHITE);
+	            button.setBorder(new LineBorder(PRIMARY_COLOR));
+	        } else {
+	            button.setBackground(Color.WHITE);
+	            button.setForeground(Color.BLACK);
+	            button.setBorder(new LineBorder(new Color(230, 230, 230)));
+	        }
+	        
+	        button.setFocusPainted(false);
+
+	        // Thêm hiệu ứng hover
+	        button.addMouseListener(new MouseAdapter() {
+	            @Override
+	            public void mouseEntered(MouseEvent e) {
+	                if (isPrimary) {
+	                    button.setBackground(PRIMARY_COLOR.darker());
+	                } else {
+	                    button.setBackground(HOVER_COLOR);
+	                }
+	            }
+
+	            @Override
+	            public void mouseExited(MouseEvent e) {
+	                if (isPrimary) {
+	                    button.setBackground(PRIMARY_COLOR);
+	                } else {
+	                    button.setBackground(Color.WHITE);
+	                }
+	            }
+	        });
+	    }
+
+}

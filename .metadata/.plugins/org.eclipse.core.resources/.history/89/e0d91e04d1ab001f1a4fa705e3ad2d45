@@ -1,0 +1,9 @@
+package dao;
+
+import connection.MyConnection;
+
+public class UserDAO {
+	private MyConnection myConnection;
+
+
+}

@@ -1,0 +1,38 @@
+package style;
+
+import java.awt.Color;
+import java.awt.Component;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public class CreateFilter {
+	private JPanel createFilterField(String label, JComponent component) {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBackground(CONTENT_COLOR);
+		panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		JLabel titleLabel = new JLabel(label);
+		titleLabel.setFont(CONTENT_FONT);
+		titleLabel.setForeground(Color.BLACK);
+		titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		component.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		String tooltipText = getTooltipText(label);
+		if (tooltipText != null) {
+			component.setToolTipText(tooltipText);
+		}
+
+		panel.add(titleLabel);
+		panel.add(Box.createVerticalStrut(8));
+		panel.add(component);
+
+		return panel;
+	}
+
+}

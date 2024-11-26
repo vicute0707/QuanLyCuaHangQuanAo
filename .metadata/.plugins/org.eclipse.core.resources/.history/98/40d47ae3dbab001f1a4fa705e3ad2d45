@@ -1,0 +1,725 @@
+package gui;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.text.SimpleDateFormat;
+
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.plaf.basic.*;
+import javax.swing.table.*;
+import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+import com.toedter.calendar.JDateChooser;
+
+import component.CreateTabPanel;
+import dao.PermissionDAO;
+import dao.UserDAO;
+import dao.UserRoleDAO;
+import dialog.SuaNhanVienDialog;
+import dialog.SuaQuyenDialog;
+import dialog.SuaTaiKhoanDialog;
+import dialog.ThemNhanVienDialog;
+import dialog.ThemQuyenDialog;
+import dialog.ThemTaiKhoanDialog;
+import entity.Permission;
+import entity.User;
+import export.ExcelExporterNV;
+import service.PermissionManager;
+import style.CustomScrollBarUI;
+import style.StyleTabbedPane;
+import java.util.*;
+import java.util.List;
+
+public class Form_NhanVien extends JPanel {
+	private static final Color CONTENT_COLOR = new Color(255, 192, 203);
+	private static final Color HOVER_COLOR = new Color(252, 231, 243);
+	private static final Font HEADER_FONT = new Font("Arial", Font.BOLD, 12);
+	private static final Font CONTENT_FONT = new Font("Arial", Font.PLAIN, 12);
+	private static final Font TAB_FONT = new Font("Arial", Font.BOLD, 14);
+	private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
+
+	private JTabbedPane tabbedPane;
+	private User currentUser;
+	private UserDAO userDAO;
+	private PermissionDAO permissionDAO;
+	private UserRoleDAO userRoleDAO;
+	private PermissionManager permissionManager;
+	private JTable staffTable;
+	private JTable permissionTable;
+	private JTable accountTable;
+	private JButton addButton;
+	private JButton editButton;
+	private JButton deleteButton;
+	private JButton exportButton;
+	private JButton refreshButton;
+	private JTextField searchField;
+
+	public Form_NhanVien(User currentUser) {
+		if (currentUser == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
+        
+        this.currentUser = currentUser;
+        this.userDAO = new UserDAO();
+        this.permissionDAO = new PermissionDAO();
+        this.userRoleDAO = new UserRoleDAO();
+        this.permissionManager = PermissionManager.getInstance();
+        
+        // Admin luôn có quyền truy cập
+        if (currentUser.getRole().equals("ROLE001") || 
+            permissionManager.hasPermission(currentUser, "VIEW_STAFF")) {
+            setLayout(new BorderLayout());
+            initComponents();
+            loadData();
+        } else {
+            showNoPermissionMessage();
+        }
+	}
+	private void showNoPermissionMessage() {
+	    // Xóa tất cả component hiện tại
+	    removeAll();
+	    setLayout(new BorderLayout());
+
+	    // Tạo panel chính để chứa thông báo
+	    JPanel messagePanel = new JPanel();
+	    messagePanel.setLayout(new BoxLayout(messagePanel, BoxLayout.Y_AXIS));
+	    messagePanel.setBackground(Color.WHITE);
+
+	    // Icon cảnh báo
+	    JLabel iconLabel = new JLabel(UIManager.getIcon("OptionPane.warningIcon"));
+	    iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+	    
+	    // Tiêu đề thông báo
+	    JLabel titleLabel = new JLabel("Không có quyền truy cập");
+	    titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+	    titleLabel.setForeground(new Color(220, 53, 69)); // Màu đỏ
+	    titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+	    
+	    // Nội dung thông báo
+	    JLabel messageLabel = new JLabel("Bạn không có quyền truy cập vào mục này.");
+	    messageLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+	    messageLabel.setForeground(new Color(108, 117, 125)); // Màu xám
+	    messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+	    
+	    // Thông tin liên hệ
+	    JLabel contactLabel = new JLabel("Vui lòng liên hệ quản trị viên để được cấp quyền.");
+	    contactLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+	    contactLabel.setForeground(new Color(108, 117, 125));
+	    contactLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+	    // Button liên hệ admin (tùy chọn)
+	    JButton contactButton = new JButton("Liên hệ Admin");
+	    contactButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+	    contactButton.setBackground(new Color(13, 110, 253)); // Màu xanh Bootstrap
+	    contactButton.setForeground(Color.WHITE);
+	    contactButton.setFocusPainted(false);
+	    contactButton.setBorderPainted(false);
+	    contactButton.setFont(new Font("Arial", Font.BOLD, 12));
+	    
+	    // Thêm hover effect cho button
+	    contactButton.addMouseListener(new MouseAdapter() {
+	        @Override
+	        public void mouseEntered(MouseEvent e) {
+	            contactButton.setBackground(new Color(11, 94, 215));
+	        }
+	        
+	        @Override
+	        public void mouseExited(MouseEvent e) {
+	            contactButton.setBackground(new Color(13, 110, 253));
+	        }
+	    });
+	    
+	    // Xử lý sự kiện click button
+	    contactButton.addActionListener(e -> {
+	        showContactAdminDialog();
+	    });
+
+	    // Tạo margin cho các component
+	    messagePanel.setBorder(BorderFactory.createEmptyBorder(50, 20, 50, 20));
+	    
+	    // Thêm các component vào panel
+	    messagePanel.add(iconLabel);
+	    messagePanel.add(Box.createVerticalStrut(20));
+	    messagePanel.add(titleLabel);
+	    messagePanel.add(Box.createVerticalStrut(10));
+	    messagePanel.add(messageLabel);
+	    messagePanel.add(Box.createVerticalStrut(5));
+	    messagePanel.add(contactLabel);
+	    messagePanel.add(Box.createVerticalStrut(20));
+	    messagePanel.add(contactButton);
+
+	    // Thêm panel vào center của form
+	    JPanel wrapperPanel = new JPanel(new GridBagLayout());
+	    wrapperPanel.setBackground(Color.WHITE);
+	    wrapperPanel.add(messagePanel);
+	    
+	    add(wrapperPanel, BorderLayout.CENTER);
+
+	    // Refresh UI
+	    revalidate();
+	    repaint();
+	}
+
+
+	private void initComponents() {
+		setBackground(Color.WHITE);
+		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane.setFont(TAB_FONT);
+		tabbedPane.setBackground(Color.WHITE);
+
+		// Style cho tabbedPane
+		StyleTabbedPane styleTabbedPane = new StyleTabbedPane();
+		styleTabbedPane.styleTabbedPane(tabbedPane);
+
+		// Tạo các panel chức năng
+		if (permissionManager.hasPermission(currentUser, "VIEW_STAFF")) {
+			tabbedPane.addTab("Quản lý nhân viên", createStaffPanel());
+		}
+
+		if (permissionManager.hasPermission(currentUser, "VIEW_PERMISSIONS")) {
+			tabbedPane.addTab("Phân quyền", createPermissionPanel());
+		}
+
+		if (permissionManager.hasPermission(currentUser, "VIEW_ACCOUNTS")) {
+			tabbedPane.addTab("Tài khoản", createAccountPanel());
+		}
+
+		// Set màu cho text của tab
+		for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+			tabbedPane.setForegroundAt(i, new Color(50, 50, 50));
+		}
+
+		add(tabbedPane, BorderLayout.CENTER);
+		setOpaque(true);
+
+		// Thêm listener cho tab changes
+		tabbedPane.addChangeListener(e -> handleTabChange());
+	}
+
+	private JPanel createStaffPanel() {
+		JPanel panel = new JPanel(new BorderLayout(5, 5));
+		panel.setBackground(Color.WHITE);
+
+		// Toolbar
+		JPanel toolBar = createToolBar("nhân viên");
+		panel.add(toolBar, BorderLayout.NORTH);
+
+		// Table
+		String[] columns = { "Mã NV", "Họ và tên", "Giới tính", "Ngày sinh", "SDT", "Email", "Trạng thái" };
+		staffTable = createTable(columns);
+		staffTable.setDefaultRenderer(Object.class, new CenterAlignRenderer());
+		staffTable.getColumnModel().getColumn(6).setCellRenderer(new StatusColumnRenderer());
+
+		JScrollPane scrollPane = new JScrollPane(staffTable);
+		scrollPane.getVerticalScrollBar().setUI(new CustomScrollBarUI());
+		panel.add(scrollPane, BorderLayout.CENTER);
+
+		return panel;
+	}
+
+	private JPanel createPermissionPanel() {
+		JPanel panel = new JPanel(new BorderLayout(5, 5));
+		panel.setBackground(Color.WHITE);
+
+		// Toolbar
+		JPanel toolBar = createToolBar("quyền");
+		panel.add(toolBar, BorderLayout.NORTH);
+
+		// Table
+		String[] columns = { "Mã quyền", "Tên quyền", "Mô tả" };
+		permissionTable = createTable(columns);
+		permissionTable.setDefaultRenderer(Object.class, new CenterAlignRenderer());
+
+		JScrollPane scrollPane = new JScrollPane(permissionTable);
+		scrollPane.getVerticalScrollBar().setUI(new CustomScrollBarUI());
+		panel.add(scrollPane, BorderLayout.CENTER);
+
+		return panel;
+	}
+
+	private JPanel createAccountPanel() {
+		JPanel panel = new JPanel(new BorderLayout(5, 5));
+		panel.setBackground(Color.WHITE);
+
+		// Toolbar
+		JPanel toolBar = createToolBar("tài khoản");
+		panel.add(toolBar, BorderLayout.NORTH);
+
+		// Table
+		String[] columns = { "Mã NV", "Tên đăng nhập", "Vai trò", "Trạng thái" };
+		accountTable = createTable(columns);
+		accountTable.setDefaultRenderer(Object.class, new CenterAlignRenderer());
+		accountTable.getColumnModel().getColumn(3).setCellRenderer(new StatusColumnRenderer());
+
+		JScrollPane scrollPane = new JScrollPane(accountTable);
+		scrollPane.getVerticalScrollBar().setUI(new CustomScrollBarUI());
+		panel.add(scrollPane, BorderLayout.CENTER);
+
+		return panel;
+	}
+
+	private JPanel createToolBar(String type) {
+		JPanel toolBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+		toolBar.setBackground(Color.WHITE);
+
+		// Search field
+		searchField = new JTextField(20);
+		searchField.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				handleSearch();
+			}
+		});
+
+		// Buttons
+		addButton = new JButton("Thêm");
+		editButton = new JButton("Sửa");
+		deleteButton = new JButton("Xóa");
+		exportButton = new JButton("Xuất Excel");
+		refreshButton = new JButton("Làm mới");
+
+		// Add action listeners
+		addButton.addActionListener(e -> handleAdd(type));
+		editButton.addActionListener(e -> handleEdit(type));
+		deleteButton.addActionListener(e -> handleDelete(type));
+
+		refreshButton.addActionListener(e -> loadData());
+
+		// Add components to toolbar
+		toolBar.add(new JLabel("Tìm kiếm: "));
+		toolBar.add(searchField);
+		toolBar.add(addButton);
+		toolBar.add(editButton);
+		toolBar.add(deleteButton);
+		toolBar.add(exportButton);
+		toolBar.add(refreshButton);
+
+		// Set button permissions
+		updateButtonPermissions(type);
+
+		return toolBar;
+	}
+
+	private JTable createTable(String[] columns) {
+		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
+
+		JTable table = new JTable(model);
+		table.getTableHeader().setFont(HEADER_FONT);
+		table.setFont(CONTENT_FONT);
+		table.setRowHeight(25);
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.getTableHeader().setReorderingAllowed(false);
+
+		return table;
+	}
+
+	private void loadData() {
+		// Load staff data
+		if (staffTable != null && permissionManager.hasPermission(currentUser, "VIEW_STAFF")) {
+			DefaultTableModel model = (DefaultTableModel) staffTable.getModel();
+			model.setRowCount(0);
+
+			List<User> users = userDAO.getAllUsers();
+			for (User user : users) {
+				model.addRow(new Object[] { user.getUserID(), user.getFullName(), user.getGender(), user.getBirthDate(),
+						user.getPhone(), user.getEmail(), user.getStatus() });
+			}
+		}
+
+		// Load permission data
+		if (permissionTable != null && permissionManager.hasPermission(currentUser, "VIEW_PERMISSIONS")) {
+			DefaultTableModel model = (DefaultTableModel) permissionTable.getModel();
+			model.setRowCount(0);
+
+			List<Permission> permissions = permissionDAO.getAllPermissions();
+			for (Permission permission : permissions) {
+				model.addRow(new Object[] { permission.getPermissionID(), permission.getName(),
+						permission.getDescription() });
+			}
+		}
+
+		// Load account data
+		if (accountTable != null && permissionManager.hasPermission(currentUser, "VIEW_ACCOUNTS")) {
+			DefaultTableModel model = (DefaultTableModel) accountTable.getModel();
+			model.setRowCount(0);
+
+			List<User> users = userDAO.getAllUsers();
+			for (User user : users) {
+				model.addRow(new Object[] { user.getUserID(), user.getUsername(), user.getRole(), user.getStatus() });
+			}
+		}
+	}
+
+	private void handleSearch() {
+		String searchText = searchField.getText().toLowerCase();
+		JTable currentTable = getCurrentTable();
+
+		if (currentTable != null) {
+			TableRowSorter<TableModel> sorter = new TableRowSorter<>(currentTable.getModel());
+			currentTable.setRowSorter(sorter);
+
+			if (searchText.trim().isEmpty()) {
+				sorter.setRowFilter(null);
+			} else {
+				sorter.setRowFilter(RowFilter.regexFilter("(?i)" + searchText));
+			}
+		}
+	}
+
+	private void handleAdd(String type) {
+	    // Kiểm tra bảng hiện tại
+	    JTable currentTable = getCurrentTable();
+	    if (currentTable == null) {
+	        JOptionPane.showMessageDialog(this,
+	            "Lỗi: Không thể xác định bảng dữ liệu!",
+	            "Lỗi",
+	            JOptionPane.ERROR_MESSAGE);
+	        return;
+	    }
+
+	    try {
+	        switch (type.toLowerCase()) {
+	            case "nhân viên":
+	                if (permissionManager.hasPermission(currentUser, "ADD_STAFF")) {
+	                    // Tạo mã NV tự động
+	                    String newStaffID = generateNewStaffID();
+	                    
+	                    ThemNhanVienDialog dialogNV = new ThemNhanVienDialog(
+	                        SwingUtilities.getWindowAncestor(this), 
+	                        true, 
+	                        userDAO, 
+	                        () -> {
+	                            loadData();
+	                            // Cập nhật lại bộ lọc tìm kiếm nếu có
+	                            handleSearch();
+	                        }
+	                    );
+	                    // Set mã NV vào dialog nếu cần
+	                    // dialogNV.setStaffID(newStaffID);
+	                    dialogNV.setVisible(true);
+	                } else {
+	                    showPermissionDeniedMessage("thêm nhân viên");
+	                }
+	                break;
+
+	            case "quyền":
+	                if (permissionManager.hasPermission(currentUser, "MANAGE_PERMISSIONS")) {
+	                    // Tạo mã quyền tự động
+	                    String newPermissionID = generateNewPermissionID();
+	                    
+	                    ThemQuyenDialog dialogQuyen = new ThemQuyenDialog(
+	                        SwingUtilities.getWindowAncestor(this), 
+	                        true, 
+	                        permissionDAO, 
+	                        () -> {
+	                            loadData();
+	                            handleSearch();
+	                        }
+	                    );
+	                    // Set mã quyền vào dialog nếu cần
+	                    // dialogQuyen.setPermissionID(newPermissionID);
+	                    dialogQuyen.setVisible(true);
+	                } else {
+	                    showPermissionDeniedMessage("thêm quyền");
+	                }
+	                break;
+
+	            case "tài khoản":
+	                if (permissionManager.hasPermission(currentUser, "MANAGE_ACCOUNTS")) {
+	                    // Kiểm tra xem có nhân viên nào chưa có tài khoản không
+	                    if (!hasUnassignedStaff()) {
+	                        JOptionPane.showMessageDialog(this,
+	                            "Tất cả nhân viên đã có tài khoản!",
+	                            "Thông báo",
+	                            JOptionPane.INFORMATION_MESSAGE);
+	                        return;
+	                    }
+	                    
+	                    ThemTaiKhoanDialog dialogTK = new ThemTaiKhoanDialog(
+	                        SwingUtilities.getWindowAncestor(this), 
+	                        true, 
+	                        userDAO, 
+	                        userRoleDAO,
+	                        () -> {
+	                            loadData();
+	                            handleSearch();
+	                        }
+	                    );
+	                    dialogTK.setVisible(true);
+	                } else {
+	                    showPermissionDeniedMessage("thêm tài khoản");
+	                }
+	                break;
+
+	            default:
+	                JOptionPane.showMessageDialog(this,
+	                    "Lỗi: Không xác định được loại thêm mới!",
+	                    "Lỗi",
+	                    JOptionPane.ERROR_MESSAGE);
+	                break;
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        JOptionPane.showMessageDialog(this,
+	            "Lỗi: " + e.getMessage(),
+	            "Lỗi",
+	            JOptionPane.ERROR_MESSAGE);
+	    }
+	}
+
+	// Phương thức helper để hiển thị thông báo không có quyền
+	private void showPermissionDeniedMessage(String action) {
+	    JOptionPane.showMessageDialog(this,
+	        "Bạn không có quyền " + action + "!",
+	        "Từ chối truy cập",
+	        JOptionPane.WARNING_MESSAGE);
+	}
+
+	// Phương thức tạo mã nhân viên mới
+	private String generateNewStaffID() {
+	    // Lấy danh sách nhân viên hiện có
+	    List<User> users = userDAO.getAllUsers();
+	    int maxId = 0;
+	    
+	    // Tìm mã nhân viên lớn nhất
+	    for (User user : users) {
+	        String id = user.getUserID();
+	        if (id != null && id.startsWith("NV")) {
+	            try {
+	                int num = Integer.parseInt(id.substring(2));
+	                maxId = Math.max(maxId, num);
+	            } catch (NumberFormatException e) {
+	                // Bỏ qua nếu format không đúng
+	            }
+	        }
+	    }
+	    
+	    // Tạo mã mới
+	    return String.format("NV%03d", maxId + 1);
+	}
+
+	// Phương thức tạo mã quyền mới
+	private String generateNewPermissionID() {
+	    // Lấy danh sách quyền hiện có
+	    List<Permission> permissions = permissionDAO.getAllPermissions();
+	    int maxId = 0;
+	    
+	    // Tìm mã quyền lớn nhất
+	    for (Permission permission : permissions) {
+	        String id = permission.getPermissionID();
+	        if (id != null && id.startsWith("Q")) {
+	            try {
+	                int num = Integer.parseInt(id.substring(1));
+	                maxId = Math.max(maxId, num);
+	            } catch (NumberFormatException e) {
+	                // Bỏ qua nếu format không đúng
+	            }
+	        }
+	    }
+	    
+	    // Tạo mã mới
+	    return String.format("Q%03d", maxId + 1);
+	}
+
+	// Phương thức kiểm tra nhân viên chưa có tài khoản
+	private boolean hasUnassignedStaff() {
+	    List<User> allUsers = userDAO.getAllUsers();
+	    List<String> userWithAccounts = userDAO.getAllUserIDs();
+	    
+	    for (User user : allUsers) {
+	        if (!userWithAccounts.contains(user.getUserID())) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+
+	private void handleEdit(String type) {
+		JTable currentTable = getCurrentTable();
+		if (currentTable == null || currentTable.getSelectedRow() == -1) {
+			JOptionPane.showMessageDialog(this, "Vui lòng chọn một dòng để chỉnh sửa", "Thông báo",
+					JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+
+		int row = currentTable.getSelectedRow();
+		String id = currentTable.getValueAt(row, 0).toString();
+
+		switch (type) {
+		case "nhân viên":
+			if (permissionManager.hasPermission(currentUser, "EDIT_STAFF")) {
+				User user = userDAO.getUserById(id);
+				if (user != null) {
+					new SuaNhanVienDialog(SwingUtilities.getWindowAncestor(this), true, user, userDAO, () -> loadData())
+							.setVisible(true);
+				}
+			}
+			break;
+		case "quyền":
+			if (permissionManager.hasPermission(currentUser, "MANAGE_PERMISSIONS")) {
+				Permission permission = permissionDAO.getPermissionById(id);
+				if (permission != null) {
+					new SuaQuyenDialog(SwingUtilities.getWindowAncestor(this), true, permission, permissionDAO,
+							() -> loadData()).setVisible(true);
+				}
+			}
+			break;
+		case "tài khoản":
+			if (permissionManager.hasPermission(currentUser, "MANAGE_ACCOUNTS")) {
+				User account = userDAO.getUserById(id);
+				if (account != null) {
+					new SuaTaiKhoanDialog(SwingUtilities.getWindowAncestor(this), true, account, userDAO, userRoleDAO,
+							() -> loadData()).setVisible(true);
+				}
+			}
+			break;
+		}
+	}
+
+	private void handleDelete(String type) {
+        JTable currentTable = getCurrentTable();
+        if (currentTable == null || currentTable.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this,
+                "Vui lòng chọn một dòng để xóa",
+                "Thông báo",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int row = currentTable.getSelectedRow();
+        String id = currentTable.getValueAt(row, 0).toString();
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Bạn có chắc chắn muốn xóa " + type + " này?",
+            "Xác nhận xóa",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            boolean success = false;
+            switch (type) {
+                case "nhân viên":
+                    if (permissionManager.hasPermission(currentUser, "DELETE_STAFF")) {
+                        success = userDAO.deleteUser(id);
+                    }
+                    break;
+                case "quyền":
+                    if (permissionManager.hasPermission(currentUser, "MANAGE_PERMISSIONS")) {
+                        success = permissionDAO.deletePermission(id);
+                    }
+                    break;
+                case "tài khoản":
+                    if (permissionManager.hasPermission(currentUser, "MANAGE_ACCOUNTS")) {
+                        success = userDAO.deleteUser(id);
+                    }
+                    break;
+            }
+
+            if (success) {
+                JOptionPane.showMessageDialog(this,
+                    "Xóa " + type + " thành công!",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE);
+                loadData();
+            } 
+            }
+        }
+
+
+
+	private void handleTabChange() {
+		String currentTab = getCurrentTabTitle();
+		updateButtonPermissions(currentTab);
+		searchField.setText("");
+		handleSearch();
+	}
+
+	private void updateButtonPermissions(String type) {
+		  if (currentUser.getRole().equals("ROLE001")) {
+	            addButton.setEnabled(true);
+	            editButton.setEnabled(true);
+	            deleteButton.setEnabled(true);
+	            exportButton.setEnabled(true);
+	            return;
+	        }
+	        
+	        switch (type) {
+	            case "nhân viên":
+	                addButton.setEnabled(permissionManager.hasPermission(currentUser, "ADD_STAFF"));
+	                editButton.setEnabled(permissionManager.hasPermission(currentUser, "EDIT_STAFF"));
+	                deleteButton.setEnabled(permissionManager.hasPermission(currentUser, "DELETE_STAFF"));
+	                exportButton.setEnabled(permissionManager.hasPermission(currentUser, "EXPORT_STAFF"));
+	                break;
+	                
+	            case "quyền":
+	                addButton.setEnabled(permissionManager.hasPermission(currentUser, "MANAGE_PERMISSIONS"));
+	                editButton.setEnabled(permissionManager.hasPermission(currentUser, "MANAGE_PERMISSIONS"));
+	                deleteButton.setEnabled(permissionManager.hasPermission(currentUser, "MANAGE_PERMISSIONS"));
+	                exportButton.setEnabled(permissionManager.hasPermission(currentUser, "EXPORT_PERMISSIONS"));
+	                break;
+	                
+	            case "tài khoản":
+	                addButton.setEnabled(permissionManager.hasPermission(currentUser, "MANAGE_ACCOUNTS"));
+	                editButton.setEnabled(permissionManager.hasPermission(currentUser, "MANAGE_ACCOUNTS"));
+	                deleteButton.setEnabled(permissionManager.hasPermission(currentUser, "MANAGE_ACCOUNTS"));
+	                exportButton.setEnabled(permissionManager.hasPermission(currentUser, "EXPORT_ACCOUNTS"));
+	                break;
+	        }
+	        refreshButton.setEnabled(true);
+	    }
+	}
+
+	private String getCurrentTabTitle() {
+		int selectedIndex = tabbedPane.getSelectedIndex();
+		if (selectedIndex != -1) {
+			return tabbedPane.getTitleAt(selectedIndex).toLowerCase();
+		}
+		return "";
+	}
+
+	private JTable getCurrentTable() {
+		String currentTab = getCurrentTabTitle();
+		switch (currentTab) {
+		case "quản lý nhân viên":
+			return staffTable;
+		case "phân quyền":
+			return permissionTable;
+		case "tài khoản":
+			return accountTable;
+		default:
+			return null;
+		}
+	}
+
+	// Custom cell renderers
+	private class StatusColumnRenderer extends DefaultTableCellRenderer {
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+				int row, int column) {
+			Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+			if (value != null) {
+				String status = value.toString();
+				if (status.equals("Đang hoạt động") || status.equals("active")) {
+					setForeground(new Color(40, 167, 69));
+				} else {
+					setForeground(new Color(220, 53, 69));
+				}
+			}
+
+			setHorizontalAlignment(JLabel.CENTER);
+			return c;
+		}
+	}
+
+	private class CenterAlignRenderer extends DefaultTableCellRenderer {
+		public CenterAlignRenderer() {
+			setHorizontalAlignment(JLabel.CENTER);
+		}
+	}
+}
