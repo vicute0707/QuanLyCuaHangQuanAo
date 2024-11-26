@@ -4,11 +4,15 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import dao.Dao_SanPham;
+import entity.ThemSanPhamTam;
 import gui.Form_SanPham;
+
 
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.util.ArrayList;
 
 public class ThemSanPham extends JDialog {
     // Định nghĩa màu sắc và font chung
@@ -19,12 +23,14 @@ public class ThemSanPham extends JDialog {
     private static final Font LABEL_FONT = new Font("Segoe UI", Font.PLAIN, 14);
     private static final Font INPUT_FONT = new Font("Segoe UI", Font.PLAIN, 14);
     private static final Font BUTTON_FONT = new Font("Segoe UI", Font.BOLD, 14);
-    
-    private JTextField txtTenSP, txtDanhMuc, txtTonKho, txtGiaBan, txtGiaNhap, txtThuongHieu;
+    private ThemSanPhamTam tam = new ThemSanPhamTam();
+    private JTextField txtTenSP, txtTonKho, txtGiaBan, txtGiaNhap, txtThuongHieu;
     private JTextArea txtMoTa;
     private JLabel lblImage;
     private String imagePath = "";
     private boolean isConfirmed = false;
+	private JComboBox txtDanhMuc;
+	private Dao_SanPham daoSanPham = new Dao_SanPham();
     
     public ThemSanPham(Frame owner) {
         super(owner, "Thêm Sản Phẩm Mới", true);
@@ -88,8 +94,10 @@ public class ThemSanPham extends JDialog {
 
         // Initialize components với font mới
         txtTenSP = createStyledTextField();
-        txtDanhMuc = createStyledTextField();
-        txtTonKho = createStyledTextField();
+        txtDanhMuc = new JComboBox(); // Khởi tạo combo box rỗng
+        txtDanhMuc.setFont(new Font("Times New Roman", Font.PLAIN, 14));
+        fillCategoryNamesToComboBox();
+       
         txtGiaBan = createStyledTextField();
         txtGiaNhap = createStyledTextField();
         txtThuongHieu = createStyledTextField();
@@ -107,11 +115,10 @@ public class ThemSanPham extends JDialog {
         // Add components to form panel với label style mới
         addFormRow(formPanel, "Tên sản phẩm:", txtTenSP, 0);
         addFormRow(formPanel, "Danh mục:", txtDanhMuc, 1);
-        addFormRow(formPanel, "Tồn kho:", txtTonKho, 2);
-        addFormRow(formPanel, "Giá bán:", txtGiaBan, 3);
-        addFormRow(formPanel, "Giá nhập:", txtGiaNhap, 4);
-        addFormRow(formPanel, "Thương hiệu:", txtThuongHieu, 5);
-        addFormRow(formPanel, "Mô tả:", new JScrollPane(txtMoTa), 6);
+        addFormRow(formPanel, "Giá bán:", txtGiaBan, 2);
+        
+        addFormRow(formPanel, "Thương hiệu:", txtThuongHieu, 3);
+      
 
         // Button Panel với style mới
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
@@ -121,8 +128,13 @@ public class ThemSanPham extends JDialog {
         JButton btnCancel = createStyledButton("Hủy bỏ", new Color(255, 182, 193));
         
         btnPhanLoai.addActionListener(e -> {
+        	tam.setLinkanh(imagePath);
+        	tam.setTxtGiaBan(txtGiaBan.getText());
+        	tam.setTxtTenSP(txtTenSP.getText());
+        	tam.setTxtThuongHieu(txtThuongHieu.getText());
+        	tam.setTxtDanhMuc((String) txtDanhMuc.getSelectedItem());
         	ThemPhanLoai dialog = new ThemPhanLoai((Frame) SwingUtilities.getWindowAncestor(ThemSanPham.this));
-        
+        	
             dialog.setVisible(true);
         });
         btnPhanLoai.setPreferredSize(new Dimension(160,40));
@@ -155,7 +167,20 @@ public class ThemSanPham extends JDialog {
         setSize(800, 600);
         setLocationRelativeTo(getOwner());
     }
+    // Phương thức để điền dữ liệu vào JComboBox
+    public void fillCategoryNamesToComboBox() {
+    
+        ArrayList<String> categoryNames = daoSanPham.getAllCategoryNames();    
+        txtDanhMuc.removeAllItems();
+        for (String categoryName : categoryNames) {
+            txtDanhMuc.addItem(categoryName);
+        }
+        if (!categoryNames.isEmpty()) {
+            txtDanhMuc.setSelectedIndex(0);
+        }
+    }
 
+    
     private JTextField createStyledTextField() {
         JTextField textField = new JTextField(20);
         textField.setFont(INPUT_FONT);
@@ -223,7 +248,7 @@ public class ThemSanPham extends JDialog {
             try {
                 ImageIcon imageIcon = new ImageIcon(imagePath);
                 Image image = imageIcon.getImage().getScaledInstance(
-                    200, 200, Image.SCALE_SMOOTH);
+                    230, 270, Image.SCALE_SMOOTH);
                 lblImage.setIcon(new ImageIcon(image));
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, 
@@ -244,7 +269,7 @@ public class ThemSanPham extends JDialog {
 
     // Getters for form data
     public String getTenSP() { return txtTenSP.getText(); }
-    public String getDanhMuc() { return txtDanhMuc.getText(); }
+    public String getDanhMuc() { return (String) txtDanhMuc.getSelectedItem(); }
     public String getTonKho() { return txtTonKho.getText(); }
     public String getGiaBan() { return txtGiaBan.getText(); }
     public String getGiaNhap() { return txtGiaNhap.getText(); }

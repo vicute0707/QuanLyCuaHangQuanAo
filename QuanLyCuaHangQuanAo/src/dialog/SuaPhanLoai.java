@@ -5,6 +5,11 @@ import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+
+import entity.PhanLoaiSanPham;
+import entity.SanPham;
+import dao.Dao_PhanLoaiSanPham;
 
 public class SuaPhanLoai extends JDialog {
     private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
@@ -18,7 +23,8 @@ public class SuaPhanLoai extends JDialog {
     private JTable table;
     private DefaultTableModel tableModel;
     private boolean isConfirmed = false;
-
+    private Dao_PhanLoaiSanPham dao = new Dao_PhanLoaiSanPham();
+    private PhanLoaiSanPham plsp = new PhanLoaiSanPham();
     public SuaPhanLoai(Frame owner) {
         super(owner, "Chỉnh Sửa Phân Loại Sản Phẩm", true);
         initComponents();
@@ -50,6 +56,7 @@ public class SuaPhanLoai extends JDialog {
 
         // Table Panel
         JPanel tablePanel = createTablePanel();
+       
 
         JPanel rightButtonPanel = new JPanel(new GridLayout(4, 1, 0, 5)); // Reduce vertical space  
         rightButtonPanel.setBackground(Color.WHITE);  
@@ -165,7 +172,7 @@ public class SuaPhanLoai extends JDialog {
 
     private JPanel createTablePanel() {
         // Create table model
-        String[] columns = {"STT", "Màu sắc", "Kích cỡ", "Chất liệu"};
+        String[] columns = {"STT","Mã PL", "Màu sắc", "Kích cỡ", "Chất liệu"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -192,14 +199,28 @@ public class SuaPhanLoai extends JDialog {
         panel.setBackground(Color.WHITE);
         panel.add(scrollPane, BorderLayout.CENTER);
         panel.setBorder(new EmptyBorder(0, 20, 0, 10));
+        addSampleData();
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {	
+                int selectedRow = table.getSelectedRow();
+                txtMauSac.setText((String) tableModel.getValueAt(selectedRow, 2));
+                txtKichCo.setText((String) tableModel.getValueAt(selectedRow, 3));
+                txtChatLieu.setText((String) tableModel.getValueAt(selectedRow, 4));
+                
+            }
+        });
 
         return panel;
     }
 
     private void addVariant() {
+    	int count = dao.getTotalProductVariants();
+    	String mapl  = "VAR" + String.format("%03d", tableModel.getRowCount() + count);
         String mauSac = txtMauSac.getText().trim();
         String kichCo = txtKichCo.getText().trim();
         String chatLieu = txtChatLieu.getText().trim();
+        String masp = plsp.getMasp();
 
         if (mauSac.isEmpty() || kichCo.isEmpty() || chatLieu.isEmpty()) {
             JOptionPane.showMessageDialog(this,
@@ -208,16 +229,23 @@ public class SuaPhanLoai extends JDialog {
                 JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        Object[] row = {
-            tableModel.getRowCount() + 1,
-            mauSac,
-            kichCo,
-            chatLieu,
-            ""  // Thương hiệu để trống
-        };
+        if(dao.insertProductVariant( mapl,masp, mauSac, kichCo, chatLieu)) {
+        	JOptionPane.showMessageDialog(this, "Thêm phân loại thành công");
+    	  Object[] row = {
+    	            tableModel.getRowCount() + 1,
+    	            mapl,
+    	            mauSac,
+    	            kichCo,
+    	            chatLieu,
+    	            ""  // Thương hiệu để trống
+    	        };
+    	        
+    	        tableModel.addRow(row);
+        }else {
+        	JOptionPane.showMessageDialog(this, "Thêm phân loại thất bại");
+        }
         
-        tableModel.addRow(row);
+      
         clearFields();
     }
 
@@ -230,7 +258,7 @@ public class SuaPhanLoai extends JDialog {
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
-
+        String mapl =   (String) tableModel.getValueAt(selectedRow, 1);
         String mauSac = txtMauSac.getText().trim();
         String kichCo = txtKichCo.getText().trim();
         String chatLieu = txtChatLieu.getText().trim();
@@ -242,10 +270,14 @@ public class SuaPhanLoai extends JDialog {
                 JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        tableModel.setValueAt(mauSac, selectedRow, 1);
-        tableModel.setValueAt(kichCo, selectedRow, 2);
-        tableModel.setValueAt(chatLieu, selectedRow, 3);
+        if(dao.capNhatProductVariant(mapl, mauSac, kichCo, chatLieu)) {
+        	 tableModel.setValueAt(mauSac, selectedRow, 1);
+             tableModel.setValueAt(kichCo, selectedRow, 2);
+             tableModel.setValueAt(chatLieu, selectedRow, 3);
+        }else {
+        	JOptionPane.showMessageDialog(this, "Cập nhật thất bại");
+        }
+       
 
         clearFields();
     }
@@ -266,11 +298,18 @@ public class SuaPhanLoai extends JDialog {
             JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            tableModel.removeRow(selectedRow);
-            // Update STT after deletion
-            for (int i = 0; i < tableModel.getRowCount(); i++) {
-                tableModel.setValueAt(i + 1, i, 0);
-            }
+        	String mapl =   (String) tableModel.getValueAt(selectedRow, 1);
+        	if(dao.XoaPhanLoaiSanPham(mapl)) {
+        		 tableModel.removeRow(selectedRow);
+                 // Update STT after deletion
+                 for (int i = 0; i < tableModel.getRowCount(); i++) {
+                     tableModel.setValueAt(i + 1, i, 0);
+                 }
+                 JOptionPane.showMessageDialog(this, "Xóa thành công");
+        	}else {
+        		JOptionPane.showMessageDialog(this, "Xóa Thất bại");
+        	}
+           
         }
     }
 
@@ -299,4 +338,24 @@ public class SuaPhanLoai extends JDialog {
         
         return data;
     }
+    
+    private void addSampleData() {
+    	String masp = plsp.getMasp();
+    	
+    	
+    	ArrayList<PhanLoaiSanPham> danhsachphanloai = dao.getProductVariantsByProductID(masp); 
+        int i = 0;
+     for (PhanLoaiSanPham s : danhsachphanloai) {
+    	 i+=1;
+         String[] row = {
+        		 String.valueOf(i),
+        		 s.getMaPL(),
+        		 s.getColor(),
+        		 s.getSize(),
+        		 s.getChatlieu()
+         };
+         tableModel.addRow(row);
+     }
+    }
+
 }
