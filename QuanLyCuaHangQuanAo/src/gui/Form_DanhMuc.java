@@ -3,11 +3,22 @@ package gui;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import javax.swing.table.*;
 import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+
+import dao.Dao_DanhMuc;
+
+import entity.DanhMuc;
+import entity.NhaCC;
+import entity.SanPham;
 
 public class Form_DanhMuc extends JPanel {
     private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
@@ -23,6 +34,7 @@ public class Form_DanhMuc extends JPanel {
     private JTextField searchField;
     private JPanel rightPanel;
     private JPanel productsPanel;
+    private Dao_DanhMuc daoDanhMuc = new Dao_DanhMuc();
 
     private class ImagePanel extends JPanel {
         private Image image;
@@ -186,7 +198,7 @@ public class Form_DanhMuc extends JPanel {
 
         return wrapperPanel;
     }
-
+    
     private JPanel createTopPanel() {
         JPanel topPanel = new JPanel(new BorderLayout(20, 0));
         topPanel.setBackground(Color.WHITE);
@@ -203,6 +215,28 @@ public class Form_DanhMuc extends JPanel {
         
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
+        searchButton.addActionListener(e->{
+        	  String keyword = searchField.getText().trim();
+
+              if (keyword.isEmpty()) {
+                  JOptionPane.showMessageDialog(this, "Vui lòng nhập từ khóa tìm kiếm!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+                  return;
+              }
+              
+              
+              ArrayList<DanhMuc> results = new ArrayList<>();
+              results = daoDanhMuc.timDanhMucTheoTen(keyword);
+              if (results == null || results.isEmpty()) {
+                  JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả nào!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                  return;
+              }else {
+            	  	TimDanhMuc dialog = new TimDanhMuc();
+                    dialog.hienThiKetQuaTimkiem(results);
+                    dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                    dialog.setVisible(true);
+            	  
+              }
+        });
         
         // Actions panel
         JPanel actionsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
@@ -214,18 +248,36 @@ public class Form_DanhMuc extends JPanel {
         addButton.setPreferredSize(new Dimension(160, 38));
         
         addButton.addActionListener(e -> {
-            String newCategory = JOptionPane.showInputDialog(Form_DanhMuc.this, 
-                "Nhập tên danh mục mới:", 
-                "Thêm danh mục", 
-                JOptionPane.PLAIN_MESSAGE);
+        	
+        	
+        	// Tạo JPanel chứa hai trường nhập liệu
+            JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5));
+            panel.add(new JLabel("Tên danh mục:"));
+            JTextField nameField = new JTextField();
+            panel.add(nameField);
+            panel.add(new JLabel("Ghi chú:"));
+            JTextField noteField = new JTextField();
+            panel.add(noteField);
+            // Hiển thị dialog với panel tùy chỉnh
+            int result = JOptionPane.showConfirmDialog(Form_DanhMuc.this, panel, "Thêm danh mục", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            
+            // Kiểm tra nếu người dùng nhấn OK
+            if (result == JOptionPane.OK_OPTION) {
+            	String maDM =  "CAT" + String.format("%03d", tableModel.getRowCount() + 1);
+                String newName = nameField.getText();
+                String newGhiChu = noteField.getText();
                 
-            if (newCategory != null && !newCategory.trim().isEmpty()) {
-                Object[] rowData = {
-                    "DM" + String.format("%03d", tableModel.getRowCount() + 1),
-                    newCategory,
-                    ""
-                };
-                tableModel.addRow(rowData);
+                if (newName != null && !newName.trim().isEmpty()) {
+                    // Cập nhật cơ sở dữ liệu và bảng
+                	daoDanhMuc.themDanhMuc(maDM, newName, newGhiChu);
+                    JOptionPane.showMessageDialog(this, "Thêm Danh Mục thành công");
+                    Object[] rowData = {maDM,newName,newGhiChu
+                            
+                        };
+                        tableModel.addRow(rowData);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Thêm thất bại: Tên danh mục không được để trống.");
+                }
             }
         });
 
@@ -237,13 +289,36 @@ public class Form_DanhMuc extends JPanel {
                     "Thông báo",
                     JOptionPane.WARNING_MESSAGE);
             } else {
+                String maDM = (String) tableModel.getValueAt(selectedRow, 0);
                 String currentName = (String) tableModel.getValueAt(selectedRow, 1);
-                String newName = JOptionPane.showInputDialog(Form_DanhMuc.this,
-                    "Chỉnh sửa tên danh mục:",
-                    currentName);
-                
-                if (newName != null && !newName.trim().isEmpty()) {
-                    tableModel.setValueAt(newName, selectedRow, 1);
+                String currentNote = (String) tableModel.getValueAt(selectedRow, 2);  // Thêm giá trị hiện tại của ghi chú nếu có
+
+                // Tạo JPanel chứa hai trường nhập liệu
+                JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5));
+                panel.add(new JLabel("Chỉnh sửa tên danh mục:"));
+                JTextField nameField = new JTextField(currentName);
+                panel.add(nameField);
+                panel.add(new JLabel("Chỉnh sửa ghi chú:"));
+                JTextField noteField = new JTextField(currentNote);
+                panel.add(noteField);
+
+                // Hiển thị dialog với panel tùy chỉnh
+                int result = JOptionPane.showConfirmDialog(Form_DanhMuc.this, panel, "Chỉnh sửa danh mục", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+                // Kiểm tra nếu người dùng nhấn OK
+                if (result == JOptionPane.OK_OPTION) {
+                    String newName = nameField.getText();
+                    String newGhiChu = noteField.getText();
+
+                    if (newName != null && !newName.trim().isEmpty()) {
+                        // Cập nhật cơ sở dữ liệu và bảng
+                        daoDanhMuc.capNhatTenDanhMuc(maDM, newName,newGhiChu);
+                        JOptionPane.showMessageDialog(this, "Cập nhật thành công");
+                        tableModel.setValueAt(newName, selectedRow, 1);
+                        tableModel.setValueAt(newGhiChu, selectedRow, 2);  // Cập nhật ghi chú trong bảng
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Cập nhật thất bại: Tên danh mục không được để trống.");
+                    }
                 }
             }
         });
@@ -262,11 +337,18 @@ public class Form_DanhMuc extends JPanel {
                     JOptionPane.YES_NO_OPTION);
                     
                 if (confirm == JOptionPane.YES_OPTION) {
-                    tableModel.removeRow(selectedRow);
-                    selectedRow = -1;
-                    productsPanel.removeAll();
-                    productsPanel.revalidate();
-                    productsPanel.repaint();
+                	String maDM = (String) tableModel.getValueAt(selectedRow, 0);
+                	if(daoDanhMuc.XoaDanhMuc(maDM)) {
+                		JOptionPane.showMessageDialog(this, "Xóa Thành công");
+                		  tableModel.removeRow(selectedRow);
+                          selectedRow = -1;
+                          productsPanel.removeAll();
+                          productsPanel.revalidate();
+                          productsPanel.repaint();
+                	}else {
+                		JOptionPane.showMessageDialog(this, "Trong danh mục này còn có sản phẩm không thể xóa");
+                	}
+                  
                 }
             }
         });
@@ -285,25 +367,15 @@ public class Form_DanhMuc extends JPanel {
     
     private void updateProductsPanel(String category) {
         productsPanel.removeAll();
+        List<SanPham> danhsachSPTheoDanhMuc = daoDanhMuc.LaySPTheomaDM(category);
+        for (SanPham s : danhsachSPTheoDanhMuc) {
+        	
+    		String tensp =s.getTenSP();
+    		int sl = s.getSoLuongTonKho();
+    		String linkAnh =	s.getLinhAnh();
         
-        // Thêm sản phẩm mẫu dựa trên danh mục
-        if (category.equals("Váy")) {
-            productsPanel.add(createProductCard("Váy caro cuti", 36, "/img/vay1.png"));
-            productsPanel.add(createProductCard("Váy công sở", 25, "/img/vay1.png"));
-            productsPanel.add(createProductCard("Váy dự tiệc", 15, "/img/vay1.png"));
-            productsPanel.add(createProductCard("Váy maxi", 20, "/img/vay.png"));
-            productsPanel.add(createProductCard("Váy body", 30, "/img/vay.png"));
-        } else if (category.equals("Áo")) {
-            productsPanel.add(createProductCard("Áo thun basic", 50, "/img/ao.png"));
-            productsPanel.add(createProductCard("Áo sơ mi trắng", 30, "/img/ao.png"));
-            productsPanel.add(createProductCard("Áo khoác jean", 20, "/img/ao.png"));
-            productsPanel.add(createProductCard("Áo len", 25, "/img/ao.png"));
-        } else if (category.equals("Quần")) {
-            productsPanel.add(createProductCard("Quần jean slim", 45, "/img/quan.png"));
-            productsPanel.add(createProductCard("Quần tây", 28, "/img/quan.png"));
-            productsPanel.add(createProductCard("Quần short", 33, "/img/quan.png"));
+        	productsPanel.add(createProductCard(tensp,sl,linkAnh));
         }
-        
         productsPanel.revalidate();
         productsPanel.repaint();
     }
@@ -357,7 +429,8 @@ public class Form_DanhMuc extends JPanel {
             public void mouseClicked(MouseEvent e) {
                 selectedRow = table.getSelectedRow();
                 if (selectedRow != -1) {
-                    String category = (String) table.getValueAt(selectedRow, 1);
+                    String category = (String) table.getValueAt(selectedRow, 0);
+                    searchField.setText((String) tableModel.getValueAt(selectedRow, 1));
                     updateProductsPanel(category);
                 }
             }
@@ -477,15 +550,15 @@ public class Form_DanhMuc extends JPanel {
     }
 
     private void addSampleData() {
-        Object[][] data = {
-            {"DM001", "Váy", "Các loại váy ngắn, váy dài"},
-            {"DM002", "Quần", "Quần jean, quần tây, quần short"},
-            {"DM003", "Áo", "Áo thun, áo sơ mi, áo khoác"},
-            {"DM004", "Phụ kiện", "Túi xách, ví, dây nịt"},
-            {"DM005", "Giày dép", "Giày cao gót, giày thể thao"}
-        };
+    	ArrayList<DanhMuc> danhsachDanhMuc = daoDanhMuc.layTatCaDanhMuc();
         
-        for (Object[] row : data) {
+        
+        for (DanhMuc s : danhsachDanhMuc) {
+        	String [] row = {
+        			s.getMaDM(),
+        			s.getTenDM(),
+        			s.getGhiChu()
+        	};
             tableModel.addRow(row);
         }
     }
@@ -517,12 +590,127 @@ public class Form_DanhMuc extends JPanel {
     // Phương thức refresh
     public void refreshProductsPanel() {
         if (selectedRow != -1) {
-            String category = (String) table.getValueAt(selectedRow, 1);
+            String category = (String) table.getValueAt(selectedRow, 0);
             updateProductsPanel(category);
         }
     }
+    
+    public class TimDanhMuc extends JDialog {
+    	private static final long serialVersionUID = 1L;
+        private final JPanel contentPanel = new JPanel();
+        private JTable table;
+        private DefaultTableModel tableModel;
+        private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
+        private static final Color CONTENT_COLOR = new Color(255, 192, 203);
+        private static final Color HOVER_COLOR = new Color(252, 231, 243);
+        private static final Font HEADER_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 12);
+        private static final Font CONTENT_FONT = new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 12);
+        private static final Font TITLE_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 14);
 
+        /**
+         * Launch the application.
+         */
+  
 
+        /**
+         * Create the dialog.
+         */
+        public TimDanhMuc() {
+            setTitle("Tìm Danh Mục");
+            setBounds(100, 100, 600, 300);
+            getContentPane().setLayout(new BorderLayout());
+            
+            contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+            getContentPane().add(contentPanel, BorderLayout.CENTER);
+            contentPanel.setLayout(new BorderLayout(0, 0));
 
+            contentPanel.add(createTablePanel(), BorderLayout.CENTER);
+
+            // Optional: Add a button panel (for example, a Close button)
+            JPanel buttonPanel = new JPanel();
+            contentPanel.add(buttonPanel, BorderLayout.SOUTH);
+            
+            JButton closeButton = new JButton("Close");
+            closeButton.addActionListener(e -> dispose());
+            buttonPanel.add(closeButton);
+        }
+
+        private JPanel createTablePanel() {
+            JPanel tablePanel = new JPanel(new BorderLayout(0, 15));
+            tablePanel.setBackground(Color.WHITE);
+
+            String[] columns = {"Mã DM", "Tên danh mục", "Ghi chú"};
+            tableModel = new DefaultTableModel(columns, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return column == 2;  // Only the "Ghi chú" column is editable
+                }
+            };
+
+            table = new JTable(tableModel);
+            table.setFont(CONTENT_FONT);
+            table.setRowHeight(32);
+            table.setGridColor(new Color(245, 245, 245));
+            table.setSelectionBackground(HOVER_COLOR);
+            table.setSelectionForeground(Color.BLACK);
+            table.setShowVerticalLines(true);
+            table.setShowHorizontalLines(true);
+
+            // Center-align content and adjust column width
+            DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+            centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+
+            for (int i = 0; i < table.getColumnCount(); i++) {
+                TableColumn column = table.getColumnModel().getColumn(i);
+                column.setCellRenderer(centerRenderer);
+
+                switch (i) {
+                    case 0: // Mã DM
+                        column.setPreferredWidth(80);
+                        column.setMaxWidth(80);
+                        column.setMinWidth(80);
+                        break;
+                    case 1: // Tên danh mục
+                        column.setPreferredWidth(150);
+                        break;
+                    case 2: // Ghi chú
+                        column.setPreferredWidth(200);
+                        break;
+                }
+            }
+
+            // Header styling
+            JTableHeader header = table.getTableHeader();
+            header.setFont(HEADER_FONT);
+            header.setBackground(Color.WHITE);
+            header.setForeground(Color.BLACK);
+            header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40));
+            ((DefaultTableCellRenderer) header.getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+
+            // Scroll pane
+            JScrollPane scrollPane = new JScrollPane(table);
+            scrollPane.setBorder(BorderFactory.createLineBorder(new Color(245, 245, 245)));
+
+            tablePanel.add(scrollPane, BorderLayout.CENTER);
+
+            return tablePanel;
+        }
+        
+        
+        
+        public void hienThiKetQuaTimkiem(ArrayList<DanhMuc> danhSach) {
+            // Xóa dữ liệu cũ trong bảng
+            tableModel.setRowCount(0);
+            // Thêm dữ liệu mới vào bảng
+            for (DanhMuc s : danhSach) {
+            	String [] row = {
+            			s.getMaDM(),
+            			s.getTenDM(),
+            			s.getGhiChu()
+            	};
+                tableModel.addRow(row);
+            }
+        }
+    }
 
 }

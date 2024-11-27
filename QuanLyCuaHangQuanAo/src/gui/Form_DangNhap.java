@@ -2,9 +2,18 @@ package gui;
 
 import javax.swing.*;  
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
+
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+
+import dao.DangNhap_Dao;
+import dialog.QuenMatKhauDialog;
+import entity.User;
+import entity.UserSession;
+
 import javax.swing.border.BevelBorder;  
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -21,26 +30,6 @@ public class Form_DangNhap extends JFrame {
     private static final Color PRIMARY_COLOR = new Color(219, 39, 119); // pink-600  
     private static final Color HOVER_COLOR = new Color(190, 24, 93); // darker pink for hover
     private static final Color LINK_HOVER_COLOR = new Color(236, 72, 153); // lighter pink for link hover
-
-    public static void main(String[] args) {  
-        EventQueue.invokeLater(new Runnable() {  
-            public void run() {  
-                try {  
-                    Form_DangNhap frame = new Form_DangNhap();  
-                    frame.setVisible(true);
-                    FlatRobotoFont.install();
-                    FlatLaf.setPreferredFontFamily(FlatRobotoFont.FAMILY);
-                    FlatLaf.setPreferredLightFontFamily(FlatRobotoFont.FAMILY_LIGHT);
-                    FlatLaf.setPreferredSemiboldFontFamily(FlatRobotoFont.FAMILY_SEMIBOLD);
-                    FlatIntelliJLaf.registerCustomDefaultsSource("style");
-                    FlatIntelliJLaf.setup();
-                } catch (Exception e) {  
-                    e.printStackTrace();  
-                }  
-            }  
-        });  
-    }  
-
     public Form_DangNhap() {  
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  
         setBounds(100, 100, 1000, 600);  
@@ -122,15 +111,67 @@ public class Form_DangNhap extends JFrame {
         gbc.insets = new Insets(20, 0, 10, 0);  
         formPanel.add(loginButton, gbc);  
         loginButton.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-			 setVisible(false);
-			 Form_GiaoDienChinh fr = new Form_GiaoDienChinh();
-			 fr.setVisible(true);
-			 }
-		});
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String username = userField.getText().trim();
+                String password = new String(passField.getPassword()).trim();
+                
+                // Kiểm tra dữ liệu nhập
+                if(username.isEmpty() || password.isEmpty()) {
+                    JOptionPane.showMessageDialog(Form_DangNhap.this, 
+                        "Vui lòng nhập đầy đủ thông tin đăng nhập!",
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                // Để test, bạn có thể in ra password đã mã hóa
+                System.out.println("Password nhập vào: " + password);
+
+                
+                // Kiểm tra đăng nhập
+                DangNhap_Dao dangNhapDao = new DangNhap_Dao();
+                User user = dangNhapDao.kiemTraDangNhap(username, password);
+                
+                if(user != null) {
+                    // Lưu thông tin user vào session
+                    UserSession.getInstance().setCurrentUser(user);
+                    
+                    JOptionPane.showMessageDialog(Form_DangNhap.this,
+                        "Đăng nhập thành công! Xin chào " + user.getFullName(),
+                        "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE);
+                        
+                    // Mở form chính tương ứng với role
+                    setVisible(false);
+                    switch(user.getRole()) {
+                        case "ROLE001": // Admin
+                            new Form_GiaoDienChinh().setVisible(true);
+                            System.out.println("Đăng nhập với quyền Admin");
+                            break;
+                        case "ROLE002": // Nhân viên kho
+                            new Form_GiaoDienChinh().setVisible(true);
+                            System.out.println("Đăng nhập với quyền Nhân viên kho");
+                            break;
+                        case "ROLE003": // Nhân viên bán hàng  
+                            new Form_GiaoDienChinh().setVisible(true);
+                            System.out.println("Đăng nhập với quyền Nhân viên bán hàng");
+                            break;
+                        default:
+                            new Form_GiaoDienChinh().setVisible(true);
+                            break;
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(Form_DangNhap.this,
+                        "Tên đăng nhập hoặc mật khẩu không đúng!",
+                        "Lỗi đăng nhập",
+                        JOptionPane.ERROR_MESSAGE);
+                    passField.setText("");
+                    passField.requestFocus();
+                }
+            }
+        });
+
         // Register Link  
         JPanel linkPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));  
         linkPanel.setOpaque(false);  
@@ -149,6 +190,7 @@ public class Form_DangNhap extends JFrame {
                             // Thêm gạch chân khi hover
                             setText("<html><u>Lấy mật khẩu</u></html>");
                             setFont(getFont().deriveFont(Font.BOLD));
+                            
                         }
 
                         @Override
@@ -156,6 +198,13 @@ public class Form_DangNhap extends JFrame {
                             setForeground(PRIMARY_COLOR);
                             setText("Lấy mật khẩu");
                             setFont(getFont().deriveFont(Font.PLAIN));
+                        }
+
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            QuenMatKhauDialog dialog = new QuenMatKhauDialog(
+                                (JFrame) SwingUtilities.getWindowAncestor(Form_DangNhap.this));
+                            dialog.setVisible(true);
                         }
                     });
                 }
@@ -180,7 +229,8 @@ public class Form_DangNhap extends JFrame {
         lbllogo_1_1.setIcon(new ImageIcon(Form_DangNhap.class.getResource("/img/logoHoa - Copy - Copy.png")));  
         lbllogo_1_1.setBounds(739, 214, 177, 163);  
         contentPane.add(lbllogo_1_1);  
-    }  
+    }
+    
 
     private JButton createStyledButton(String text) {  
         JButton button = new JButton(text) {
@@ -233,8 +283,6 @@ public class Form_DangNhap extends JFrame {
 
         return button;  
     }  
- 
-
     private JPasswordField createStyledPasswordField() {  
         JPasswordField passwordField = new JPasswordField(15);  
         passwordField.setFont(new Font("Arial", Font.PLAIN, 16));  
@@ -244,7 +292,6 @@ public class Form_DangNhap extends JFrame {
         passwordField.setOpaque(false);  
         return passwordField;  
     }  
-
     private JTextField createStyledTextField() {  
         JTextField textField = new JTextField(15);  
         textField.setFont(new java.awt.Font("Segoe UI", 0, 13));  
@@ -253,5 +300,6 @@ public class Form_DangNhap extends JFrame {
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)));  
         textField.setOpaque(false);  
         return textField;  
-    }  
+    }
+
 }
