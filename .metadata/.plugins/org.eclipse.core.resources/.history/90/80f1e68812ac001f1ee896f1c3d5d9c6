@@ -1,0 +1,12 @@
+package component;
+
+import java.util.HashMap;
+
+import javax.swing.*;
+
+
+public class ButtonChucNangMenu extends JToolBar{
+	 public ButtonToolBar btnAdd, btnDelete, btnEdit, btnDetail, btnNhapExcel, btnXuatExcel, btnHuyPhieu;
+	 public JSeparator separator;
+	 public HashMap<String, ButtonToolBar> btn = new HashMap<String, ButtonToolBar>();
+}

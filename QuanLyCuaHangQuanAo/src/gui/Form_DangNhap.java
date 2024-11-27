@@ -146,19 +146,19 @@ public class Form_DangNhap extends JFrame {
                     setVisible(false);
                     switch(user.getRole()) {
                         case "ROLE001": // Admin
-                            new Form_GiaoDienChinh().setVisible(true);
+                            new Form_GiaoDienChinh(userLabel.getText()).setVisible(true);
                             System.out.println("Đăng nhập với quyền Admin");
                             break;
                         case "ROLE002": // Nhân viên kho
-                            new Form_GiaoDienChinh().setVisible(true);
+                            new Form_GiaoDienChinh(userLabel.getText()).setVisible(true);
                             System.out.println("Đăng nhập với quyền Nhân viên kho");
                             break;
                         case "ROLE003": // Nhân viên bán hàng  
-                            new Form_GiaoDienChinh().setVisible(true);
+                            new Form_GiaoDienChinh(userLabel.getText()).setVisible(true);
                             System.out.println("Đăng nhập với quyền Nhân viên bán hàng");
                             break;
                         default:
-                            new Form_GiaoDienChinh().setVisible(true);
+                            new Form_GiaoDienChinh(userLabel.getText()).setVisible(true);
                             break;
                     }
                 } else {

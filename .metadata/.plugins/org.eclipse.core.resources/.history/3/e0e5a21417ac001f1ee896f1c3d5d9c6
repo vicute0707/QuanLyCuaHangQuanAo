@@ -1,0 +1,98 @@
+package dao;
+
+import entity.UserRole;
+import connection.MyConnection;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class UserRoleDAO {
+    private MyConnection myConnection;
+
+    public UserRoleDAO() {
+        myConnection = new MyConnection();
+    }
+
+    public List<UserRole> getAllRoles() {
+        List<UserRole> roles = new ArrayList<>();
+        String sql = "SELECT * FROM userrole";
+
+        try (Connection conn = myConnection.connect();
+             PreparedStatement pst = conn.prepareStatement(sql);
+             ResultSet rs = pst.executeQuery()) {
+
+            while (rs.next()) {
+                UserRole role = new UserRole();
+                role.setRoleID(rs.getString("roleID"));
+                role.setRoleName(rs.getString("roleName"));
+                role.setPermissions(rs.getString("permissions"));
+                roles.add(role);
+            }
+            return roles;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        } finally {
+            myConnection.closeConnection();
+        }
+    }
+
+    public UserRole getRoleByID(String roleID) {
+        String sql = "SELECT * FROM userrole WHERE roleID = ?";
+
+        try (Connection conn = myConnection.connect();
+             PreparedStatement pst = conn.prepareStatement(sql)) {
+
+            pst.setString(1, roleID);
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                UserRole role = new UserRole();
+                role.setRoleID(rs.getString("roleID"));
+                role.setRoleName(rs.getString("roleName"));
+                role.setPermissions(rs.getString("permissions"));
+                return role;
+            }
+            return null;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            myConnection.closeConnection();
+        }
+    }
+
+    public boolean updateRolePermissions(String roleID, String permissions) {
+        String sql = "UPDATE userrole SET permissions = ? WHERE roleID = ?";
+        
+        try (Connection conn = myConnection.connect();
+             PreparedStatement pst = conn.prepareStatement(sql)) {
+            
+            pst.setString(1, permissions);
+            pst.setString(2, roleID);
+            
+            // Ghi log thay đổi quyền
+            boolean success = pst.executeUpdate() > 0;
+            if (success) {
+                ghiLogThayDoiQuyen(conn, roleID, permissions);
+            }
+            return success;            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            myConnection.closeConnection();
+        }
+    }
+
+    private void ghiLogThayDoiQuyen(Connection conn, String roleID, String permissions) throws SQLException {
+        String sql = "INSERT INTO permission_change_log (roleID, change_time, new_permissions) VALUES (?, NOW(), ?)";
+        try (PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, roleID);
+            pst.setString(2, permissions);
+            pst.executeUpdate();
+        }
+    }
+}

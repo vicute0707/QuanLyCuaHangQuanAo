@@ -1,0 +1,10 @@
+package component;
+
+import javax.swing.*;
+
+import style.CreateRoundedButton;
+
+public class ButtonChucNangMenu extends JToolBar{
+	 public CreateRoundedButton btnAdd, btnDelete, btnEdit, btnDetail, btnNhapExcel, btnXuatExcel, btnHuyPhieu;
+
+}

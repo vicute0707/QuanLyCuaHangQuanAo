@@ -1,0 +1,9 @@
+package component;
+
+import javax.swing.*;
+
+
+public class ButtonChucNangMenu extends JToolBar{
+	 public ButtonToolBar btnAdd, btnDelete, btnEdit, btnDetail, btnNhapExcel, btnXuatExcel, btnHuyPhieu;
+	 
+}

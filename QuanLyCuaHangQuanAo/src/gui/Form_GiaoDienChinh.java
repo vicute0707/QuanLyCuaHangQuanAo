@@ -9,12 +9,14 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.HashMap;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
 
+import dao.UserRoleDAO;
 import dialog.UserInfoDialog;
 import entity.User;
 import entity.UserSession;
@@ -32,9 +34,16 @@ public class Form_GiaoDienChinh extends JFrame {
 	private Form_NhanVien nvPanel;
 	private QuanLyNhapHang nhPanel;
 	private QuanLyDonBan dhPanel;
+
+	    private JPanel contentPanel;
+	    private String currentUser;
+	    private UserRoleDAO userRoleDAO;
+		private HashMap<String, JPanel> panels;
 	private static final Font MENU_FONT = new Font(FlatRobotoFont.FAMILY, Font.BOLD, 13);
 
-	public Form_GiaoDienChinh() {
+	public Form_GiaoDienChinh(String username) {
+		this.currentUser = username;
+		this.userRoleDAO = new UserRoleDAO();
 		setSize(new Dimension(1400, 700));
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -54,7 +63,7 @@ public class Form_GiaoDienChinh extends JFrame {
 
 		// Initialize and show home panel
 		homePanel = new Form_TrangChu();
-		spPanel = new Form_SanPham();
+		spPanel = new Form_SanPham(username);
 		dmPanel = new Form_DanhMuc();
 		showPanel(homePanel);
 		nccPanel = new Form_NhaCungCap();
@@ -82,7 +91,7 @@ public class Form_GiaoDienChinh extends JFrame {
 		userPanel.setBackground(Color.WHITE);
 
 		JLabel lblUser = new JLabel("Hi, " + currentUser.getFullName() + "   ");
-	
+
 		lblUser.setFont(new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 13));
 		lblUser.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
@@ -91,21 +100,21 @@ public class Form_GiaoDienChinh extends JFrame {
 
 		// Thêm sự kiện click
 		lblUser.addMouseListener(new MouseAdapter() {
-		    @Override
-		    public void mouseClicked(MouseEvent e) {
-		        UserInfoDialog dialog = new UserInfoDialog(Form_GiaoDienChinh.this);
-		        dialog.setVisible(true);
-		    }
-		    
-		    @Override
-		    public void mouseEntered(MouseEvent e) {
-		        lblUser.setForeground(PRIMARY_COLOR);
-		    }
-		    
-		    @Override
-		    public void mouseExited(MouseEvent e) {
-		        lblUser.setForeground(Color.BLACK);
-		    }
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				UserInfoDialog dialog = new UserInfoDialog(Form_GiaoDienChinh.this);
+				dialog.setVisible(true);
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				lblUser.setForeground(PRIMARY_COLOR);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				lblUser.setForeground(Color.BLACK);
+			}
 		});
 
 		userPanel.add(lblUser);

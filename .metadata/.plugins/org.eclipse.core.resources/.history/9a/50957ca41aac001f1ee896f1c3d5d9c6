@@ -1,0 +1,73 @@
+package component;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.HashMap;
+import entity.UserRole;
+import style.CreateRoundedButton;
+
+public class ButtonChucNangMenu extends JPanel {
+	private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
+	private UserRole userRole;
+	private Map<String, JButton> buttons;
+	private CreateRoundedButton styleBtn;
+
+	public ButtonChucNangMenu(UserRole userRole) {
+		if (userRole == null) {
+			throw new IllegalArgumentException("UserRole không thể null");
+		}
+
+		this.userRole = userRole;
+		this.buttons = new HashMap<>();
+		this.styleBtn = new CreateRoundedButton();
+
+		setLayout(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+		setBackground(Color.WHITE);
+		initButtons();
+	}
+
+	private void initButtons() {
+		// Button Thêm sản phẩm
+		createButton("ADD_PRODUCT", "Thêm sản phẩm", "/icon/circle-plus.png", true);
+
+		// Button Sửa
+		createButton("EDIT_PRODUCT", "Edit", "/icon/pencil.png", false);
+
+		// Button Xóa
+		createButton("DELETE_PRODUCT", "Xóa", "/icon/trash.png", false);
+
+		// Button Chi tiết
+		createButton("DETAIL_PRODUCT", "About", "/icon/info.png", false);
+
+		// Button Xuất Excel
+		createButton("EXPORT_PRODUCT", "Xuất Excel", "/icon/printer.png", true);
+	}
+
+	private void createButton(String permission, String text, String iconPath, boolean isPrimary) {
+		// Chỉ tạo button nếu user có quyền hoặc là admin
+		if (userRole.isAdminRole() || userRole.hasPermission(permission)) {
+			JButton button = styleBtn.createRoundedButton(text, iconPath, true);
+
+			if (isPrimary) {
+				button.setBackground(PRIMARY_COLOR);
+				button.setForeground(Color.WHITE);
+				button.setPreferredSize(new Dimension(160, 38));
+			}
+
+			buttons.put(permission, button);
+			add(button);
+		}
+	}
+
+	public JButton getButton(String permission) {
+		return buttons.get(permission);
+	}
+
+	public void updateButtonStates(boolean rowSelected) {
+		buttons.values().forEach(button -> {
+			if (button != buttons.get("ADD_PRODUCT") && button != buttons.get("EXPORT_PRODUCT")) {
+				button.setEnabled(rowSelected);
+			}
+		});
+	}
+}

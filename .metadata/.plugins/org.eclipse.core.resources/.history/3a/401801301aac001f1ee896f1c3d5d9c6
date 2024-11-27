@@ -1,0 +1,86 @@
+package component;
+
+import javax.swing.*;
+import java.awt.*;
+import entity.UserRole;
+import style.CreateRoundedButton;
+
+public class ButtonChucNangMenu extends JPanel {
+    private static final Color PRIMARY_COLOR = new Color(219, 39, 119);
+    private static final Color CONTENT_COLOR = new Color(255, 192, 203);
+    private JButton btnAdd, btnEdit, btnDelete, btnDetail, btnExport;
+    private UserRole userRole;
+    private CreateRoundedButton styleBtn;
+
+    public ButtonChucNangMenu(UserRole userRole) {
+        this.userRole = userRole;
+        this.styleBtn = new CreateRoundedButton();
+        
+        setLayout(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        setBackground(Color.WHITE);
+        initButtons();
+    }
+
+    private void initButtons() {
+        // Nút Thêm Sản Phẩm
+        if (userRole.hasPermission("ADD_PRODUCT")) {
+            btnAdd = styleBtn.createRoundedButton("Thêm sản phẩm", "/icon/circle-plus.png", true);
+            btnAdd.setBackground(PRIMARY_COLOR);
+            btnAdd.setForeground(Color.WHITE);
+            btnAdd.setPreferredSize(new Dimension(160, 38));
+            add(btnAdd);
+        }
+
+        // Nút Edit
+        if (userRole.hasPermission("EDIT_PRODUCT")) {
+            btnEdit = styleBtn.createRoundedButton("Edit", "/icon/pencil.png", true);
+            btnEdit.setEnabled(false);
+            add(btnEdit);
+        }
+
+        // Nút Xóa
+        if (userRole.hasPermission("DELETE_PRODUCT")) {
+            btnDelete = styleBtn.createRoundedButton("Xóa", "/icon/trash.png", true);
+            btnDelete.setEnabled(false);
+            add(btnDelete);
+        }
+
+        // Nút Chi tiết
+        if (userRole.hasPermission("DETAIL_PRODUCT")) {
+            btnDetail = styleBtn.createRoundedButton("About", "/icon/info.png", true);
+            btnDetail.setEnabled(false);
+            add(btnDetail);
+        }
+
+        // Nút Xuất Excel
+        if (userRole.hasPermission("EXPORT_PRODUCT")) {
+            btnExport = styleBtn.createRoundedButton("Xuất Excel", "/icon/printer.png", true);
+            btnExport.setPreferredSize(new Dimension(160, 38));
+            add(btnExport);
+        }
+    }
+
+    public void updateButtonStates(boolean rowSelected) {
+        if (btnEdit != null) btnEdit.setEnabled(rowSelected);
+        if (btnDelete != null) btnDelete.setEnabled(rowSelected);
+        if (btnDetail != null) btnDetail.setEnabled(rowSelected);
+    }
+
+    // Getters cho các buttons
+    public JButton getButton(String buttonType) {
+        switch (buttonType) {
+            case "ADD_PRODUCT":
+                return btnAdd;
+            case "EDIT_PRODUCT":
+                return btnEdit;
+            case "DELETE_PRODUCT":
+                return btnDelete;
+            case "DETAIL_PRODUCT":
+                return btnDetail;
+            case "EXPORT_PRODUCT":
+                return btnExport;
+            default:
+                return null;
+        }
+    }
+}

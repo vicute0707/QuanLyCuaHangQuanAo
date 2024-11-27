@@ -1,0 +1,67 @@
+// UserRole.java
+package entity;
+
+import java.util.*;
+
+public class UserRole {
+	public static final String ADMIN_ROLE_ID = "ROLE001";
+	private String roleID;
+	private String roleName;
+	private String permissions;
+	private Set<String> permissionSet;
+
+	public UserRole() {
+		this.permissionSet = new HashSet<>();
+	}
+
+	public UserRole(String roleID, String roleName, String permissions) {
+		this.roleID = roleID;
+		this.roleName = roleName;
+		this.permissions = permissions;
+		this.permissionSet = new HashSet<>();
+		if (permissions != null && !permissions.isEmpty()) {
+			Collections.addAll(this.permissionSet, permissions.split(","));
+		}
+	}
+
+	// Existing getters and setters...
+
+	public boolean hasPermission(String permission) {
+		// Admin always has all permissions
+		if (ADMIN_ROLE_ID.equals(this.roleID)) {
+			return true;
+		}
+		return this.permissionSet.contains(permission);
+	}
+
+	public boolean hasAnyPermission(String... permissions) {
+		// Admin always has all permissions
+		if (ADMIN_ROLE_ID.equals(this.roleID)) {
+			return true;
+		}
+		for (String permission : permissions) {
+			if (this.permissionSet.contains(permission)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean hasAllPermissions(String... permissions) {
+		// Admin always has all permissions
+		if (ADMIN_ROLE_ID.equals(this.roleID)) {
+			return true;
+		}
+		for (String permission : permissions) {
+			if (!this.permissionSet.contains(permission)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	// Update the isAdminRole method to use the constant
+	public boolean isAdminRole() {
+		return ADMIN_ROLE_ID.equals(this.roleID);
+	}
+}
