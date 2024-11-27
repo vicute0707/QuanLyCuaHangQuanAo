@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import connection.MyConnection1;
+import connection.MyConnection;
 import entity.DanhMuc;
 import entity.SanPham;
 
@@ -16,7 +16,7 @@ public class Dao_DanhMuc {
 	    ArrayList<DanhMuc> dsDM;
 
 	    public Dao_DanhMuc() {
-	        con = MyConnection1.getInstance().getConnection();
+	        con = MyConnection.getInstance().getConnection();
 	        dsDM = new ArrayList<DanhMuc>();
 	    }
 	    public ArrayList<DanhMuc> layTatCaDanhMuc(){
@@ -39,6 +39,7 @@ public class Dao_DanhMuc {
 			}
 	    	return dsDM;
 	    }
+	    
 	    // Method to insert a new category
 	    public boolean themDanhMuc(String maDM, String tenDM, String ghiChu) {
 	        String sql = "{CALL InsertCategory(?, ?, ?)}";

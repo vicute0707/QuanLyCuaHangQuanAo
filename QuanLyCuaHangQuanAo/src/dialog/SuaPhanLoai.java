@@ -299,7 +299,7 @@ public class SuaPhanLoai extends JDialog {
 
         if (confirm == JOptionPane.YES_OPTION) {
         	String mapl =   (String) tableModel.getValueAt(selectedRow, 1);
-        	if(dao.XoaPhanLoaiSanPham(mapl)) {
+        	if(dao.xoaPhanLoaiSanPham(mapl)) {
         		 tableModel.removeRow(selectedRow);
                  // Update STT after deletion
                  for (int i = 0; i < tableModel.getRowCount(); i++) {

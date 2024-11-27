@@ -1,86 +1,73 @@
 package dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.CallableStatement;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-
-import javax.swing.*;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
-import connection.MyConnection1;
+import connection.MyConnection;
 import entity.NhaCC;
 
 public class Dao_NhaCungCap {
-    private Connection con;
-    ArrayList<NhaCC> dsNcc;
+    private final Connection con; // Sử dụng biến final để nhấn mạnh kết nối chỉ được khởi tạo một lần.
+    private final ArrayList<NhaCC> dsNcc; // Danh sách nhà cung cấp.
 
     public Dao_NhaCungCap() {
-        con = MyConnection1.getInstance().getConnection();
-        dsNcc = new ArrayList<NhaCC>();
+        con = MyConnection.getInstance().getConnection();
+        dsNcc = new ArrayList<>();
     }
 
+    // Lấy tất cả nhà cung cấp
     public ArrayList<NhaCC> layTatCaNhaCungCap() {
-        try {
-            // Gọi stored procedure
-            String sql = "{CALL GetAllSuppliers}";
-            CallableStatement cs = con.prepareCall(sql);
-            ResultSet rs = cs.executeQuery();
-            
-            dsNcc.clear();  // Xóa dữ liệu cũ trước khi thêm mới
+        String sql = "{CALL GetAllSuppliers}";
+        try (CallableStatement cs = con.prepareCall(sql);
+             ResultSet rs = cs.executeQuery()) {
+            dsNcc.clear(); // Xóa danh sách cũ
             while (rs.next()) {
-                String maNCC = rs.getString("supplierID");
-                String tenNCC = rs.getString("supplierName");
-                String diaChi = rs.getString("supplierAddress");
-                String email = rs.getString("supplierEmail");
-                String soDienThoai = rs.getString("supplierPhone");
-                
-                NhaCC nhaCC = new NhaCC(maNCC, tenNCC, diaChi, email, soDienThoai);
-                dsNcc.add(nhaCC);
+                dsNcc.add(new NhaCC(
+                    rs.getString("supplierID"),
+                    rs.getString("supplierName"),
+                    rs.getString("supplierAddress"),
+                    rs.getString("supplierEmail"),
+                    rs.getString("supplierPhone")
+                ));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return dsNcc;
     }
-    
-    public boolean insertNhaCungCap(NhaCC nhacc) {
-        String sql = "{CALL InsertSupplier(?, ?, ?, ?, ?)}"; // Đóng ngoặc SQL
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, nhacc.getMaNCC());
-            ps.setString(2, nhacc.getTenNCC());
-            ps.setString(3, nhacc.getDiaChi());
-            ps.setString(4, nhacc.getEmail());
-            ps.setString(5, nhacc.getSdt());
 
-            // Thực thi câu lệnh
-            int rowAffected = ps.executeUpdate();
-            return rowAffected > 0; // Kiểm tra xem có ảnh hưởng dòng dữ liệu nào không
-        } catch (SQLException e) {
-            e.printStackTrace(); // In lỗi ra console
-            // Bạn có thể thêm logging ở đây hoặc trả về false nếu không muốn xử lý thêm
-        }
-        return false; // Nếu có lỗi xảy ra hoặc không có dòng nào bị ảnh hưởng, trả về false
-    }
-
-    
-    public boolean xoaNhaCungCapTheoMa(String maNCC) {
-        String sql = "{CALL DeleteSupplierByID(?)}";
+    // Thêm nhà cung cấp
+    public boolean themNhaCungCap(NhaCC nhaCC) {
+        String sql = "{CALL InsertSupplier(?, ?, ?, ?, ?)}";
         try (CallableStatement stmt = con.prepareCall(sql)) {
-            stmt.setString(1, maNCC);  
-            int rowsAffected = stmt.executeUpdate();  
-            return rowsAffected > 0;  
+            stmt.setString(1, nhaCC.getMaNCC());
+            stmt.setString(2, nhaCC.getTenNCC());
+            stmt.setString(3, nhaCC.getDiaChi());
+            stmt.setString(4, nhaCC.getEmail());
+            stmt.setString(5, nhaCC.getSdt());
+            return stmt.executeUpdate() > 0; // Kiểm tra dòng bị ảnh hưởng.
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
     }
-    
+
+    // Xóa nhà cung cấp theo mã
+    public boolean xoaNhaCungCapTheoMa(String maNCC) {
+        String sql = "{CALL DeleteSupplierByID(?)}";
+        try (CallableStatement stmt = con.prepareCall(sql)) {
+            stmt.setString(1, maNCC);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Cập nhật nhà cung cấp
     public boolean capnhatNhaCungCap(String maNCC, String tenNCC, String diaChi, String email, String soDienThoai) {
         String sql = "{CALL UpdateSupplierByID(?, ?, ?, ?, ?)}";
         try (CallableStatement stmt = con.prepareCall(sql)) {
@@ -98,116 +85,79 @@ public class Dao_NhaCungCap {
         return false;
     }
     
-    
+    public boolean insertNhaCungCap(NhaCC nhacc) {
+        String sql = "{CALL InsertSupplier(?, ?, ?, ?, ?)}"; // Đóng ngoặc SQL
+        try (CallableStatement stmt = con.prepareCall(sql)) {
+        	stmt.setString(1, nhacc.getMaNCC());
+        	stmt.setString(2, nhacc.getTenNCC());
+        	stmt.setString(3, nhacc.getDiaChi());
+        	stmt.setString(4, nhacc.getEmail());
+        	stmt.setString(5, nhacc.getSdt());
+
+            // Thực thi câu lệnh
+            int rowAffected = stmt.executeUpdate();
+            return rowAffected > 0; 
+        } catch (SQLException e) {
+            e.printStackTrace(); 
+            
+        }
+        return false; 
+    }
+
+    // Tìm nhà cung cấp theo mã
     public ArrayList<NhaCC> timNhaCungCapTheoMa(String maNCC) {
-        ArrayList<NhaCC> ketQua = new ArrayList<>();
         String sql = "{CALL SearchSupplierByID(?)}";
-        try (CallableStatement stmt = con.prepareCall(sql)) {
-            stmt.setString(1, maNCC);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                NhaCC nhaCC = new NhaCC(
-                    rs.getString("supplierID"),
-                    rs.getString("supplierName"),
-                    rs.getString("supplierAddress"),
-                    rs.getString("supplierEmail"),
-                    rs.getString("supplierPhone")
-                );
-                ketQua.add(nhaCC);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return ketQua; // Trả về danh sách (có thể trống nếu không tìm thấy)
+        return layNhaCungCapTheoDieuKien(sql, maNCC);
     }
 
-    
-    public ArrayList<NhaCC> timNhaCungCapTheoSoDienThoai(String soDienThoai) {
-        ArrayList<NhaCC> ketQua = new ArrayList<>();
-        String sql = "{CALL SearchSupplierByPhone(?)}";
-        try (CallableStatement stmt = con.prepareCall(sql)) {
-            stmt.setString(1, soDienThoai);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                ketQua.add(new NhaCC(
-            		 rs.getString("supplierID"),
-                     rs.getString("supplierName"),
-                     rs.getString("supplierAddress"),
-                     rs.getString("supplierEmail"),
-                     rs.getString("supplierPhone")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return ketQua;
-    }
-    
-    public ArrayList<NhaCC> timNhaCungCapTheoEmail(String email) {
-        ArrayList<NhaCC> ketQua = new ArrayList<>();
-        String sql = "{CALL SearchSupplierByEmail(?)}";
-        try (CallableStatement stmt = con.prepareCall(sql)) {
-            stmt.setString(1, email);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                ketQua.add(new NhaCC(
-        		 rs.getString("supplierID"),
-                 rs.getString("supplierName"),
-                 rs.getString("supplierAddress"),
-                 rs.getString("supplierEmail"),
-                 rs.getString("supplierPhone")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return ketQua;
-    }
-    
+    // Tìm nhà cung cấp theo tên
     public ArrayList<NhaCC> timNhaCungCapTheoTen(String tenNCC) {
-        ArrayList<NhaCC> ketQua = new ArrayList<>();
         String sql = "{CALL SearchSupplierByName(?)}";
-        try (CallableStatement stmt = con.prepareCall(sql)) {
-            stmt.setString(1, tenNCC);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                ketQua.add(new NhaCC(
-            		 rs.getString("supplierID"),
-                     rs.getString("supplierName"),
-                     rs.getString("supplierAddress"),
-                     rs.getString("supplierEmail"),
-                     rs.getString("supplierPhone")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return ketQua;
+        return layNhaCungCapTheoDieuKien(sql, tenNCC);
     }
-
-
     public ArrayList<NhaCC> timNhaCungTheoDiaCi(String diaChi) {
-        ArrayList<NhaCC> ketQua = new ArrayList<>();
+        
         String sql = "{CALL SearchSupplierByAddress(?)}";
+        return layNhaCungCapTheoDieuKien(sql, diaChi);
+    }
+
+    // Tìm nhà cung cấp theo số điện thoại
+    public ArrayList<NhaCC> timNhaCungCapTheoSoDienThoai(String soDienThoai) {
+        String sql = "{CALL SearchSupplierByPhone(?)}";
+        return layNhaCungCapTheoDieuKien(sql, soDienThoai);
+    }
+
+    // Tìm nhà cung cấp theo email
+    public ArrayList<NhaCC> timNhaCungCapTheoEmail(String email) {
+        String sql = "{CALL SearchSupplierByEmail(?)}";
+        return layNhaCungCapTheoDieuKien(sql, email);
+    }
+
+    // Tìm nhà cung cấp theo địa chỉ
+    public ArrayList<NhaCC> timNhaCungCapTheoDiaChi(String diaChi) {
+        String sql = "{CALL SearchSupplierByAddress(?)}";
+        return layNhaCungCapTheoDieuKien(sql, diaChi);
+    }
+
+    // Phương thức chung để lấy nhà cung cấp dựa vào điều kiện
+    private ArrayList<NhaCC> layNhaCungCapTheoDieuKien(String sql, String param) {
+        ArrayList<NhaCC> ketQua = new ArrayList<>();
         try (CallableStatement stmt = con.prepareCall(sql)) {
-            stmt.setString(1, diaChi);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                ketQua.add(new NhaCC(
-	        		 rs.getString("supplierID"),
-	                 rs.getString("supplierName"),
-	                 rs.getString("supplierAddress"),
-	                 rs.getString("supplierEmail"),
-	                 rs.getString("supplierPhone")
-                ));
+            stmt.setString(1, param);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ketQua.add(new NhaCC(
+                        rs.getString("supplierID"),
+                        rs.getString("supplierName"),
+                        rs.getString("supplierAddress"),
+                        rs.getString("supplierEmail"),
+                        rs.getString("supplierPhone")
+                    ));
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return ketQua;
     }
-    
-  
-
-
 }

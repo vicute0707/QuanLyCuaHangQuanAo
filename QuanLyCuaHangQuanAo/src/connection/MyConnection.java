@@ -13,12 +13,21 @@ public class MyConnection {
     private static final String DATABASE = "store_management";
     private static final String USERNAME = "root";
     private static final String PASSWORD = "123456";  
-
+    private static MyConnection instance;
     // JDBC URL
     private static final String URL = "jdbc:mysql://" + HOST + ":" + PORT + "/" + DATABASE +
             "?useUnicode=true&characterEncoding=UTF-8";
 
     private Connection connection;
+    
+    public synchronized static MyConnection getInstance() {
+        if(instance == null)
+            instance = new MyConnection();
+        return instance;
+    }
+	public Connection getConnection() {
+        return connection;
+    }
 
     // Constructor
     public MyConnection() {
