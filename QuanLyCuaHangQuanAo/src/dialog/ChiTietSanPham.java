@@ -2,7 +2,11 @@ package dialog;
 
 import javax.swing.*;  
 import javax.swing.border.*;  
-import javax.swing.table.*;  
+import javax.swing.table.*;
+
+import dao.Dao_SanPham;
+import entity.SanPham;
+
 import java.awt.*;  
 import java.awt.event.*;  
 
@@ -28,13 +32,20 @@ public class ChiTietSanPham extends JDialog {
     private JLabel lblImage;
     private String imagePath = "";
     private boolean isConfirmed = false;
-
+	private String masp;
+	private Dao_SanPham daoSanPham = new Dao_SanPham();
     public ChiTietSanPham(Frame owner, DefaultTableModel tableModel, int selectedRow) {  
         super(owner, "Sản Phẩm", true);  
         this.tableModel = tableModel;  
         this.selectedRow = selectedRow;  
         initComponents();  
     }  
+    
+//    public ChiTietSanPham(Frame owner, String masp) {  
+//        super(owner, "Sản Phẩm", true);  
+//        this.masp = masp;  
+//        initComponents();  
+//    }  
 
     private void initComponents() {  
     	setLayout(new BorderLayout());
@@ -74,7 +85,22 @@ public class ChiTietSanPham extends JDialog {
         lblImage.setBackground(Color.WHITE);
         lblImage.setOpaque(true);
         
-       
+        String masp = (String) tableModel.getValueAt(selectedRow, 0);
+        SanPham sanPham = daoSanPham.laySanPhamTheoMa(masp);
+
+        // Lấy đường dẫn hình ảnh
+        String linkanh = sanPham.getLinhAnh();
+        System.out.println(linkanh);
+        // Tạo ImageIcon từ đường dẫn hình ảnh
+//        ImageIcon icon = new ImageIcon("images\\products\\ao-thun-nam.jpg");
+        ImageIcon icon = new ImageIcon(getClass().getResource(linkanh));
+
+
+        // Thay đổi kích thước ảnh (ví dụ: 100x100)
+        Image image = icon.getImage().getScaledInstance(220, 300, Image.SCALE_SMOOTH);
+        lblImage.setIcon(new ImageIcon(image));
+
+        
         
         imagePanel.add(lblImage, BorderLayout.CENTER);
    
@@ -109,6 +135,26 @@ public class ChiTietSanPham extends JDialog {
         addFormRow(formPanel, "Giá bán:", txtGiaBan, 3);
         addFormRow(formPanel, "Giá nhập:", txtGiaNhap, 4);
         addFormRow(formPanel, "Thương hiệu:", txtThuongHieu, 5);
+
+        String tenSP = (String) tableModel.getValueAt(selectedRow, 1);
+        String tenDm =  (String) tableModel.getValueAt(selectedRow, 2);
+        String tonkho =  (String) tableModel.getValueAt(selectedRow, 3);
+        String gianhap =  (String) tableModel.getValueAt(selectedRow, 4);
+        String giaban =  (String) tableModel.getValueAt(selectedRow, 5);
+        String thuonghieu =  (String) tableModel.getValueAt(selectedRow, 6);
+        
+        txtTenSP.setText(tenSP); 
+        txtDanhMuc.setText(tonkho);
+        txtTonKho.setText(tonkho);
+        txtGiaBan.setText(giaban +"  VNĐ");
+        txtGiaNhap.setText(gianhap +"  VNĐ");
+        txtThuongHieu.setText(thuonghieu);
+        txtTenSP.setEditable(false);
+        txtDanhMuc.setEditable(false);
+        txtTonKho.setEditable(false);
+        txtGiaBan.setEditable(false);
+        txtGiaNhap.setEditable(false);
+        txtThuongHieu.setEditable(false);
 
 
         // Button Panel với style mới
