@@ -2,7 +2,11 @@ package dialog;
 
 import javax.swing.*;  
 import javax.swing.border.*;  
-import javax.swing.table.*;  
+import javax.swing.table.*;
+
+import dao.Dao_SanPham;
+import entity.SanPham;
+import entity.PhanLoaiSanPham;
 import java.awt.*;  
 import java.awt.event.*;  
 
@@ -22,12 +26,15 @@ public class EditSanPham extends JDialog {
   
     private static final Font INPUT_FONT = new Font("Segoe UI", Font.PLAIN, 14);
     private static final Font BUTTON_FONT = new Font("Segoe UI", Font.BOLD, 14);
-    
+   
     private JTextField txtTenSP, txtDanhMuc, txtTonKho, txtGiaBan, txtGiaNhap, txtThuongHieu;
     private JTextArea txtMoTa;
     private JLabel lblImage;
     private String imagePath = "";
     private boolean isConfirmed = false;
+    private Dao_SanPham daoSanPham = new Dao_SanPham();
+    private PhanLoaiSanPham plsp = new PhanLoaiSanPham();
+   
 
     public EditSanPham(Frame owner, DefaultTableModel tableModel, int selectedRow) {  
         super(owner, "Sửa Phân Loại Sản Phẩm", true);  
@@ -101,7 +108,8 @@ public class EditSanPham extends JDialog {
         ));
         txtMoTa.setLineWrap(true);
         txtMoTa.setWrapStyleWord(true);
-
+        String masp = (String) tableModel.getValueAt(selectedRow, 0);
+        SanPham sanPham = daoSanPham.laySanPhamTheoMa(masp);
         // Add components to form panel với label style mới
         addFormRow(formPanel, "Tên sản phẩm:", txtTenSP, 0);
         addFormRow(formPanel, "Danh mục:", txtDanhMuc, 1);
@@ -109,6 +117,38 @@ public class EditSanPham extends JDialog {
         addFormRow(formPanel, "Giá bán:", txtGiaBan, 3);
         addFormRow(formPanel, "Giá nhập:", txtGiaNhap, 4);
         addFormRow(formPanel, "Thương hiệu:", txtThuongHieu, 5);
+        String tenSP = sanPham.getTenSP();
+        String tenDm =  sanPham.getDanhmuc().getTenDM();
+        int tonkho =  sanPham.getSoLuongTonKho();
+        double gianhap =  sanPham.getGiaNhap();
+        double giaban =  sanPham.getGiaBan();
+        String thuonghieu =  sanPham.getThuongHieu();
+        
+        txtTenSP.setText(tenSP); 
+        txtDanhMuc.setText(tenDm);
+        txtTonKho.setText(String.valueOf(tonkho));
+        txtGiaBan.setText(String.valueOf(giaban) );
+        txtGiaNhap.setText(String.valueOf(gianhap) );
+        txtThuongHieu.setText(thuonghieu);
+        
+        
+        plsp.setMasp(masp);
+        
+    
+        
+        
+
+        // Lấy đường dẫn hình ảnh
+        String linkanh = sanPham.getLinhAnh();
+      
+        
+    
+        ImageIcon icon = new ImageIcon(getClass().getResource(linkanh));
+
+
+        // Thay đổi kích thước ảnh (ví dụ: 100x100)
+        Image image = icon.getImage().getScaledInstance(220, 300, Image.SCALE_SMOOTH);
+        lblImage.setIcon(new ImageIcon(image));
 
 
         // Button Panel với style mới
